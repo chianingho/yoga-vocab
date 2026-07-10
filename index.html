@@ -6,245 +6,247 @@
     <title>Yoga Vocab Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 避免手機瀏覽器點擊卡片時出現惱人的藍色外框 */
+        /* 避免手機瀏覽器點擊卡片時出現藍色外框 */
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
+<body class="bg-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
 
-    <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-10 shadow-sm">
+    <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-50 shadow-sm">
         <h1 class="text-xl font-bold text-slate-800 tracking-wide">🧘‍♀️ 全英瑜珈師資班單字庫</h1>
-        <p class="text-xs text-slate-500 mt-1">點擊英文會自動發音，配對正確即可消除</p>
     </header>
 
-    <main class="flex-grow p-4 max-w-md mx-auto w-full">
-        <div class="grid grid-cols-2 gap-3" id="game-grid">
-            </div>
+    <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-center">
+        
+        <div id="preview-screen" class="bg-white rounded-2xl p-5 shadow-md w-full">
+            <h2 class="text-lg font-bold text-slate-800 mb-2 text-center">📖 本輪單字預習 (10個單字)</h2>
+            <p class="text-xs text-slate-500 text-center mb-4">點擊下方任意單字可聽發音，準備好就開始挑戰！</p>
+            
+            <div id="preview-list" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+                </div>
+            
+            <button onclick="startGame()" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-lg tracking-wider active:scale-[0.98]">
+                開始遊戲
+            </button>
+        </div>
 
-        <div id="win-message" class="hidden text-center py-12 animate-bounce">
+        <div id="game-screen" class="hidden w-full">
+            <p class="text-xs text-slate-500 text-center mb-3">左邊選英文，右邊選中文</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div id="english-col" class="flex flex-col gap-3"></div>
+                <div id="chinese-col" class="flex flex-col gap-3"></div>
+            </div>
+        </div>
+
+        <div id="win-message" class="hidden text-center py-8 bg-white rounded-2xl shadow-md p-6 animate-fade-in">
             <h2 class="text-2xl font-bold text-emerald-600 mb-2">🎉 太棒了！全部配對成功</h2>
-            <button onclick="initGame()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-xl shadow-md transition">
-                下一組單字
+            <p class="text-sm text-slate-500 mb-4">這 10 個單字你已經有概念囉！</p>
+            <button onclick="initRound()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+                挑戰下一組單字
             </button>
         </div>
     </main>
 
-    <footer class="p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-50/80 backdrop-blur-md">
-        <button onclick="initGame()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm transition text-center">
-            換一組單字 / 重新洗牌
+    <footer id="game-footer" class="hidden p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-100/80 backdrop-blur-md">
+        <button onclick="initRound()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm transition text-center text-sm">
+            重新挑選單字 / 放棄本局
         </button>
     </footer>
 
     <script>
-        // 超完整瑜珈解剖、口令與體位法單字庫
+        // 完整的瑜珈單字庫
         const vocabData = [
-            // === 核心口令與動作 (Core Cues & Actions) ===
-            { en: 'Inhale', zh: '吸氣' },
-            { en: 'Exhale', zh: '吐氣' },
-            { en: 'Lengthen', zh: '延伸 / 拉長' },
-            { en: 'Engage', zh: '啟動 / 收緊肌肉' },
-            { en: 'Root down', zh: '向下扎根' },
-            { en: 'Ground down', zh: '穩固於地面' },
-            { en: 'Micro-bend', zh: '微彎 (膝蓋或手肘)' },
-            { en: 'Tuck the tailbone', zh: '捲尾骨 / 尾骨內收' },
-            { en: 'Draw navel to spine', zh: '肚臍收向脊椎' },
-            { en: 'Knit the ribs in', zh: '肋骨內收 / 不外翻' },
-            { en: 'Stack your joints', zh: '關節垂直對齊' },
-            { en: 'Square your hips', zh: '骨盆擺正' },
-            { en: 'Soften', zh: '放鬆 / 柔和' },
-            { en: 'Melt', zh: '下沉 / 融化' },
-            { en: 'Internal rotation', zh: '內旋' },
-            { en: 'External rotation', zh: '外旋' },
-            { en: 'Flex the feet', zh: '勾腳背' },
-            { en: 'Point the toes', zh: '壓腳背 / 繃腳尖' },
-            { en: 'Gaze / Drishti', zh: '凝視點 / 眼神專注' },
-            { en: 'Lift / Elevate', zh: '抬起 / 提升' },
-            { en: 'Press / Push', zh: '推 / 壓' },
-            { en: 'Reach', zh: '向外延伸 / 觸碰' },
-            { en: 'Expand', zh: '擴展 (如胸腔)' },
-            { en: 'Release', zh: '釋放 / 解開動作' },
-
-            // === 骨骼與身體部位 (Bones & Body Parts) ===
-            { en: 'Forearm', zh: '小臂 / 前臂' },
-            { en: 'Thumb', zh: '大拇指' },
-            { en: 'Wrist', zh: '手腕' },
-            { en: 'Palm', zh: '手掌' },
-            { en: 'Crown of the head', zh: '頭頂' },
-            { en: 'Collarbone', zh: '鎖骨' },
-            { en: 'Shoulder blades', zh: '肩胛骨' },
-            { en: 'Rib cage', zh: '肋骨 / 胸廓' },
-            { en: 'Spine', zh: '脊椎' },
-            { en: 'Tailbone', zh: '尾骨' },
-            { en: 'Sacrum', zh: '薦骨 / 骶骨' },
-            { en: 'Sit bones', zh: '坐骨' },
-            { en: 'Pelvis', zh: '骨盆' },
-            { en: 'Torso', zh: '軀幹' },
-            { en: 'Sternum', zh: '胸骨' },
-            { en: 'Thigh / Femur', zh: '大腿 / 大腿骨' },
-            { en: 'Shin', zh: '小腿前側 / 脛骨' },
-            { en: 'Calf', zh: '小腿肚' },
-            { en: 'Heel', zh: '腳跟' },
-            { en: 'Ankle', zh: '腳踝' },
-
-            // === 肌肉與重要解剖學 (Muscles & Anatomy) ===
-            { en: 'Core', zh: '核心肌群' },
-            { en: 'Hamstrings', zh: '大腿後側肌群' },
-            { en: 'Quadriceps', zh: '大腿前側四頭肌' },
-            { en: 'Glutes', zh: '臀部肌群' },
-            { en: 'Pelvic floor', zh: '盆底肌' },
-            { en: 'Psoas', zh: '髂腰肌' },
-            { en: 'Trapezius', zh: '斜方肌' },
-            { en: 'Joint', zh: '關節' },
-            { en: 'Ligament', zh: '韌帶' },
-            { en: 'Tendon', zh: '肌腱' },
-
-            // === 常見體位法名稱 (Common Asanas) ===
-            { en: 'Downward-Facing Dog', zh: '下犬式' },
-            { en: 'Upward-Facing Dog', zh: '上犬式' },
-            { en: 'Warrior Pose', zh: '戰士式' },
-            { en: 'Child’s Pose', zh: '嬰兒式' },
-            { en: 'Plank Pose', zh: '平板式' },
-            { en: 'Cobra Pose', zh: '眼鏡蛇式' },
-            { en: 'Mountain Pose', zh: '山式' },
-            { en: 'Corpse Pose / Savasana', zh: '大休息 / 攤屍式' },
-            { en: 'Forward Fold', zh: '前彎' },
-            { en: 'Halfway Lift', zh: '半前彎 / 脊椎延伸' },
-            { en: 'Chairs Pose', zh: '幻椅式' },
-            { en: 'Chaturanga', zh: '四柱支撐 / 鱷魚式' },
-
-            // === 課堂教學與輔具 (Class & Props) ===
-            { en: 'Pranayama', zh: '呼吸法 / 調息' },
-            { en: 'Asana', zh: '體位法' },
-            { en: 'Vinyasa', zh: '動態串聯' },
-            { en: 'Alignment', zh: '正位 / 對位' },
-            { en: 'Modification', zh: '退階 / 替代動作' },
-            { en: 'Progression', zh: '進階動作' },
-            { en: 'Props', zh: '輔具 (磚/繩/枕)' },
-            { en: 'Mat', zh: '瑜珈墊' },
-            { en: 'Block / Yoga Block', zh: '瑜珈磚' },
-            { en: 'Strap / Yoga Strap', zh: '瑜珈繩' }
+            { en: 'Inhale', zh: '吸氣' }, { en: 'Exhale', zh: '吐氣' }, { en: 'Lengthen', zh: '延伸 / 拉長' },
+            { en: 'Engage', zh: '啟動 / 收緊肌肉' }, { en: 'Root down', zh: '向下扎根' }, { en: 'Ground down', zh: '穩固於地面' },
+            { en: 'Micro-bend', zh: '微彎 (膝/肘)' }, { en: 'Tuck the tailbone', zh: '捲尾骨 / 內收' }, { en: 'Draw navel to spine', zh: '肚臍收向脊椎' },
+            { en: 'Knit the ribs in', zh: '肋骨內收不外翻' }, { en: 'Stack your joints', zh: '關節垂直對齊' }, { en: 'Square your hips', zh: '骨盆擺正' },
+            { en: 'Soften', zh: '放鬆 / 柔和' }, { en: 'Melt', zh: '下沉 / 融化' }, { en: 'Internal rotation', zh: '內旋' },
+            { en: 'External rotation', zh: '外旋' }, { en: 'Flex the feet', zh: '勾腳背' }, { en: 'Point the toes', zh: '壓腳背 / 繃腳尖' },
+            { en: 'Gaze / Drishti', zh: '凝視點 / 眼神專注' }, { en: 'Lift / Elevate', zh: '抬起 / 提升' }, { en: 'Press / Push', zh: '推 / 壓' },
+            { en: 'Reach', zh: '向外延伸' }, { en: 'Expand', zh: '擴展 (胸腔)' }, { en: 'Release', zh: '釋放 / 解開動作' },
+            { en: 'Forearm', zh: '小臂 / 前臂' }, { en: 'Thumb', zh: '大拇指' }, { en: 'Wrist', zh: '手腕' },
+            { en: 'Palm', zh: '手掌' }, { en: 'Crown of the head', zh: '頭頂' }, { en: 'Collarbone', zh: '鎖骨' },
+            { en: 'Shoulder blades', zh: '肩胛骨' }, { en: 'Rib cage', zh: '肋骨 / 胸廓' }, { en: 'Spine', zh: '脊椎' },
+            { en: 'Tailbone', zh: '尾骨' }, { en: 'Sacrum', zh: '薦骨 / 骶骨' }, { en: 'Sit bones', zh: '坐骨' },
+            { en: 'Pelvis', zh: '骨盆' }, { en: 'Torso', zh: '軀幹' }, { en: 'Sternum', zh: '胸骨' },
+            { en: 'Thigh', zh: '大腿' }, { en: 'Shin', zh: '小腿前側 / 脛骨' }, { en: 'Calf', zh: '小腿肚' },
+            { en: 'Heel', zh: '腳跟' }, { en: 'Ankle', zh: '腳踝' }, { en: 'Core', zh: '核心肌群' },
+            { en: 'Hamstrings', zh: '大腿後側肌群' }, { en: 'Quadriceps', zh: '大腿前側四頭肌' }, { en: 'Glutes', zh: '臀部肌群' },
+            { en: 'Pelvic floor', zh: '盆底肌' }, { en: 'Psoas', zh: '髂腰肌' }, { en: 'Downward-Facing Dog', zh: '下犬式' },
+            { en: 'Upward-Facing Dog', zh: '上犬式' }, { en: 'Warrior Pose', zh: '戰士式' }, { en: 'Child’s Pose', zh: '嬰兒式' },
+            { en: 'Plank Pose', zh: '平板式' }, { en: 'Cobra Pose', zh: '眼鏡蛇式' }, { en: 'Mountain Pose', zh: '山式' },
+            { en: 'Corpse Pose / Savasana', zh: '大休息' }, { en: 'Forward Fold', zh: '前彎' }, { en: 'Halfway Lift', zh: '半前彎 / 脊椎延伸' },
+            { en: 'Chairs Pose', zh: '幻椅式' }, { en: 'Chaturanga', zh: '四柱支撐' }, { en: 'Pranayama', zh: '呼吸法 / 調息' },
+            { en: 'Asana', zh: '體位法' }, { en: 'Vinyasa', zh: '動態串聯' }, { en: 'Alignment', zh: '正位 / 對位' },
+            { en: 'Modification', zh: '退階動作' }, { en: 'Progression', zh: '進階動作' }, { en: 'Props', zh: '輔具 (磚/繩)' },
+            { en: 'Mat', zh: '瑜珈墊' }
         ];
 
+        let currentRoundData = [];
         let selectedEngCard = null;
         let selectedZhCard = null;
         let matchedCount = 0;
 
-        // 語音發音功能
         function speak(text) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // 砍掉前一個正在發音的聲音
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
-                utterance.rate = 0.85; // 語速微調慢 15%，聽得更精確
+                utterance.rate = 0.85; 
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // 洗牌演算法
         function shuffle(array) {
             return array.sort(() => Math.random() - 0.5);
         }
 
-        // 初始化遊戲
-        function initGame() {
-            const grid = document.getElementById('game-grid');
-            const winMessage = document.getElementById('win-message');
-            grid.innerHTML = '';
-            winMessage.classList.add('hidden');
+        // 初始化一輪新遊戲（抽選10個單字並顯示預習畫面）
+        function initRound() {
+            document.getElementById('preview-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-footer').classList.add('hidden');
+            document.getElementById('win-message').classList.add('hidden');
+            
             selectedEngCard = null;
             selectedZhCard = null;
             matchedCount = 0;
 
-            // 每次隨機挑選 6 個單字來玩
-            const currentRoundData = shuffle([...vocabData]).slice(0, 6);
+            // 隨機抽 10 個單字
+            currentRoundData = shuffle([...vocabData]).slice(0, 10);
 
-            // 拆分英文與中文卡片
-            let cards = [];
+            // 渲染預習清單
+            const previewList = document.getElementById('preview-list');
+            previewList.innerHTML = '';
             currentRoundData.forEach(item => {
-                cards.push({ id: item.en, type: 'en', text: item.en });
-                cards.push({ id: item.en, type: 'zh', text: item.zh });
-            });
-
-            // 再次打亂所有卡片的順序
-            shuffle(cards);
-
-            // 渲染卡片到畫面上
-            cards.forEach(card => {
-                const cardEl = document.createElement('div');
-                cardEl.className = 'bg-white border border-slate-200 rounded-xl p-3 h-24 flex items-center justify-center text-center font-semibold text-slate-700 shadow-sm cursor-pointer transition active:scale-95';
-                cardEl.innerText = card.text;
-                
-                // 調整字體大小，避免長英文單字溢出
-                if (card.type === 'en') {
-                    cardEl.classList.add('text-sm', 'tracking-tight', 'text-indigo-900');
-                } else {
-                    cardEl.classList.add('text-base', 'text-slate-800');
-                }
-
-                cardEl.onclick = () => handleCardClick(cardEl, card);
-                grid.appendChild(cardEl);
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-xl cursor-pointer active:bg-indigo-50 transition shadow-sm';
+                row.onclick = () => speak(item.en);
+                row.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-base font-bold text-indigo-900">${item.en}</span>
+                        <span class="text-xs text-slate-400">🔊</span>
+                    </div>
+                    <span class="text-base font-medium text-slate-600">${item.zh}</span>
+                `;
+                previewList.appendChild(row);
             });
         }
 
-        // 處理卡片點擊邏輯
+        // 從預習切換到遊戲配對畫面
+        function startGame() {
+            document.getElementById('preview-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-footer').classList.remove('hidden');
+
+            const engCol = document.getElementById('english-col');
+            const zhCol = document.getElementById('chinese-col');
+            engCol.innerHTML = '';
+            zhCol.innerHTML = '';
+
+            // 分離中英文並各自洗牌
+            let engCards = currentRoundData.map(item => ({ id: item.en, text: item.en, type: 'en' }));
+            let zhCards = currentRoundData.map(item => ({ id: item.en, text: item.zh, type: 'zh' }));
+            shuffle(engCards);
+            shuffle(zhCards);
+
+            // 渲染左邊英文卡片 (放大字體 text-xl)
+            engCards.forEach(card => {
+                const el = document.createElement('div');
+                el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
+                el.innerText = card.text;
+                el.onclick = () => handleCardClick(el, card);
+                engCol.appendChild(el);
+            });
+
+            // 渲染右邊中文卡片 (放大字體 text-xl)
+            zhCards.forEach(card => {
+                const el = document.createElement('div');
+                el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
+                el.innerText = card.text;
+                el.onclick = () => handleCardClick(el, card);
+                zhCol.appendChild(el);
+            });
+        }
+
+        // 處理卡片點擊
         function handleCardClick(element, card) {
-            if (element.classList.contains('opacity-0')) return;
+            if (element.classList.contains('pointer-events-none')) return;
 
             if (card.type === 'en') {
-                speak(card.text); // 點擊英文時發音
-                if (selectedEngCard) selectedEngCard.el.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+                speak(card.text); // 點英文發音
+                if (selectedEngCard) {
+                    selectedEngCard.el.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
+                }
                 selectedEngCard = { el: element, id: card.id };
-                element.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+                element.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
             } else {
-                if (selectedZhCard) selectedZhCard.el.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+                if (selectedZhCard) {
+                    selectedZhCard.el.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
+                }
                 selectedZhCard = { el: element, id: card.id };
-                element.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+                element.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
             }
 
-            // 檢查是否達成配對
+            // 檢查配對
             if (selectedEngCard && selectedZhCard) {
+                const eEl = selectedEngCard.el;
+                const zEl = selectedZhCard.el;
+
+                // 暫時鎖定所有卡片點擊，避免動畫期間亂點出錯
+                document.getElementById('game-screen').classList.add('pointer-events-none');
+
                 if (selectedEngCard.id === selectedZhCard.id) {
-                    // 配對正確
-                    const eEl = selectedEngCard.el;
-                    const zEl = selectedZhCard.el;
-                    
+                    // 1. 配對正確：亮綠燈
                     [eEl, zEl].forEach(el => {
-                        el.className = 'bg-emerald-50 border-emerald-500 text-emerald-700 rounded-xl p-3 h-24 flex items-center justify-center text-center font-semibold shadow-sm transition duration-300 opacity-0 pointer-events-none';
+                        el.className = 'bg-emerald-500 border-emerald-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
                     });
 
                     matchedCount++;
                     selectedEngCard = null;
                     selectedZhCard = null;
 
-                    if (matchedCount === 6) {
-                        setTimeout(() => {
-                            document.getElementById('win-message').classList.remove('hidden');
-                        }, 400);
-                    }
-                } else {
-                    // 配對錯誤
-                    const eEl = selectedEngCard.el;
-                    const zEl = selectedZhCard.el;
-
-                    [eEl, zEl].forEach(el => {
-                        el.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
-                        el.classList.add('border-rose-400', 'bg-rose-50', 'text-rose-700');
-                    });
-
+                    // 0.8秒後淡出隱藏
                     setTimeout(() => {
                         [eEl, zEl].forEach(el => {
-                            el.classList.remove('border-rose-400', 'bg-rose-50', 'text-rose-700');
+                            el.className = 'opacity-0 pointer-events-none rounded-xl p-3 h-20 flex items-center justify-center text-center transition duration-300';
                         });
+                        // 解除鎖定
+                        document.getElementById('game-screen').classList.remove('pointer-events-none');
+
+                        // 檢查通關
+                        if (matchedCount === 10) {
+                            setTimeout(() => {
+                                document.getElementById('game-screen').classList.add('hidden');
+                                document.getElementById('game-footer').classList.add('hidden');
+                                document.getElementById('win-message').classList.remove('hidden');
+                            }, 300);
+                        }
                     }, 800);
 
-                    selectedEngCard = null;
-                    selectedZhCard = null;
+                } else {
+                    // 2. 配對錯誤：亮紅燈
+                    [eEl, zEl].forEach(el => {
+                        el.className = 'bg-rose-500 border-rose-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
+                    });
+
+                    // 0.8秒後恢復原狀
+                    setTimeout(() => {
+                        eEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
+                        zEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
+                        
+                        selectedEngCard = null;
+                        selectedZhCard = null;
+                        // 解除鎖定
+                        document.getElementById('game-screen').classList.remove('pointer-events-none');
+                    }, 800);
                 }
             }
         }
 
-        // 啟動遊戲
-        initGame();
+        // 啟動首輪
+        initRound();
     </script>
 </body>
+</html>
 </html>
