@@ -5,53 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yoga Vocab Master</title>
     
-    <!-- 改用微軟官方超可愛 3D 瑜珈立體 Icon (支援 iOS & Android) -->
-    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Woman%20in%20yoga%20pose/3D/woman_in_yoga_pose_3d.png">
-    <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/Woman%20in%20yoga%20pose/3D/woman_in_yoga_pose_3d.png">
+    <script>
+        // 終極神奇魔法：用 Canvas 直接在手機本機畫出一個粉嫩的 PNG 圖示，專治 iOS 不服
+        (function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180;
+            canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+            
+            // 1. 填滿粉嫩背景色
+            ctx.fillStyle = '#FFE4E1'; 
+            ctx.beginPath();
+            // 畫圓角
+            ctx.roundRect ? ctx.roundRect(0, 0, 180, 180, 40) : ctx.rect(0, 0, 180, 180);
+            ctx.fill();
+            
+            // 2. 畫上可愛星星 ✨
+            ctx.font = '30px serif';
+            ctx.fillText('✨', 20, 45);
+            
+            // 3. 畫上瑜珈小人 🧘‍♀️
+            ctx.font = '105px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🧘‍♀️', 90, 105);
+            
+            // 4. 轉成標準 PNG DataURL
+            const pngDataUrl = canvas.toDataURL('image/png');
+            
+            // 5. 強行注入到 Head 標籤中
+            const linkIcon = document.createElement('link');
+            linkIcon.rel = 'icon';
+            linkIcon.type = 'image/png';
+            linkIcon.href = pngDataUrl;
+            document.head.appendChild(linkIcon);
+            
+            const linkApple = document.createElement('link');
+            linkApple.rel = 'apple-touch-icon';
+            linkApple.href = pngDataUrl;
+            document.head.appendChild(linkApple);
+        })();
+    </script>
     
-    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 避免手機瀏覽器點擊卡片時出現藍色外框 */
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
 
-    <!-- Header -->
     <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-50 shadow-sm">
         <h1 class="text-xl font-bold text-slate-800 tracking-wide">🧘‍♀️ 全英瑜珈師資班單字庫</h1>
     </header>
 
-    <!-- Main Content Area -->
     <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-center">
         
-        <!-- 階段一：10個單字介紹卡片 (預習畫面) -->
         <div id="preview-screen" class="bg-white rounded-2xl p-5 shadow-md w-full">
             <h2 class="text-lg font-bold text-slate-800 mb-2 text-center">📖 本輪單字預習 (10個單字)</h2>
             <p class="text-xs text-slate-500 text-center mb-4">點擊下方任意單字可聽發音，準備好就開始挑戰！</p>
             
             <div id="preview-list" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-                <!-- 由 JS 動態生成預習清單 -->
-            </div>
+                </div>
             
             <button onclick="startGame()" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-lg tracking-wider active:scale-[0.98]">
                 開始遊戲
             </button>
         </div>
 
-        <!-- 階段二：遊戲配對畫面 -->
         <div id="game-screen" class="hidden w-full">
             <p class="text-xs text-slate-500 text-center mb-3">左邊選英文，右邊選中文</p>
             <div class="grid grid-cols-2 gap-4">
-                <!-- 左邊：英文欄 -->
                 <div id="english-col" class="flex flex-col gap-3"></div>
-                <!-- 右邊：中文欄 -->
                 <div id="chinese-col" class="flex flex-col gap-3"></div>
             </div>
         </div>
 
-        <!-- 階段三：破關提示 -->
         <div id="win-message" class="hidden text-center py-8 bg-white rounded-2xl shadow-md p-6 animate-fade-in">
             <h2 class="text-2xl font-bold text-emerald-600 mb-2">🎉 太棒了！全部配對成功</h2>
             <p class="text-sm text-slate-500 mb-4">這 10 個單字你已經有概念囉！</p>
@@ -61,7 +89,6 @@
         </div>
     </main>
 
-    <!-- Footer / Reset Button -->
     <footer id="game-footer" class="hidden p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-100/80 backdrop-blur-md">
         <button onclick="initRound()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm transition text-center text-sm">
             重新挑選單字 / 放棄本局
