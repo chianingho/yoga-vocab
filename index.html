@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yoga Vocab Master</title>
+    
+    <!-- 桌面可愛明亮 Icon 設定 (支援 iOS & Android) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23FFE4E1'/><text x='50' y='68' font-size='52' text-anchor='middle'>🧘‍♀️</text><text x='22' y='32' font-size='20'>✨</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23FFE4E1'/><text x='50' y='68' font-size='52' text-anchor='middle'>🧘‍♀️</text><text x='22' y='32' font-size='20'>✨</text></svg>">
+    
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 避免手機瀏覽器點擊卡片時出現藍色外框 */
@@ -12,32 +18,40 @@
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
 
+    <!-- Header -->
     <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-50 shadow-sm">
         <h1 class="text-xl font-bold text-slate-800 tracking-wide">🧘‍♀️ 全英瑜珈師資班單字庫</h1>
     </header>
 
+    <!-- Main Content Area -->
     <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-center">
         
+        <!-- 階段一：10個單字介紹卡片 (預習畫面) -->
         <div id="preview-screen" class="bg-white rounded-2xl p-5 shadow-md w-full">
             <h2 class="text-lg font-bold text-slate-800 mb-2 text-center">📖 本輪單字預習 (10個單字)</h2>
             <p class="text-xs text-slate-500 text-center mb-4">點擊下方任意單字可聽發音，準備好就開始挑戰！</p>
             
             <div id="preview-list" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
-                </div>
+                <!-- 由 JS 動態生成預習清單 -->
+            </div>
             
             <button onclick="startGame()" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-lg tracking-wider active:scale-[0.98]">
                 開始遊戲
             </button>
         </div>
 
+        <!-- 階段二：遊戲配對畫面 -->
         <div id="game-screen" class="hidden w-full">
             <p class="text-xs text-slate-500 text-center mb-3">左邊選英文，右邊選中文</p>
             <div class="grid grid-cols-2 gap-4">
+                <!-- 左邊：英文欄 -->
                 <div id="english-col" class="flex flex-col gap-3"></div>
+                <!-- 右邊：中文欄 -->
                 <div id="chinese-col" class="flex flex-col gap-3"></div>
             </div>
         </div>
 
+        <!-- 階段三：破關提示 -->
         <div id="win-message" class="hidden text-center py-8 bg-white rounded-2xl shadow-md p-6 animate-fade-in">
             <h2 class="text-2xl font-bold text-emerald-600 mb-2">🎉 太棒了！全部配對成功</h2>
             <p class="text-sm text-slate-500 mb-4">這 10 個單字你已經有概念囉！</p>
@@ -47,6 +61,7 @@
         </div>
     </main>
 
+    <!-- Footer / Reset Button -->
     <footer id="game-footer" class="hidden p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-100/80 backdrop-blur-md">
         <button onclick="initRound()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm transition text-center text-sm">
             重新挑選單字 / 放棄本局
@@ -54,7 +69,6 @@
     </footer>
 
     <script>
-        // 完整的瑜珈單字庫
         const vocabData = [
             { en: 'Inhale', zh: '吸氣' }, { en: 'Exhale', zh: '吐氣' }, { en: 'Lengthen', zh: '延伸 / 拉長' },
             { en: 'Engage', zh: '啟動 / 收緊肌肉' }, { en: 'Root down', zh: '向下扎根' }, { en: 'Ground down', zh: '穩固於地面' },
@@ -101,7 +115,6 @@
             return array.sort(() => Math.random() - 0.5);
         }
 
-        // 初始化一輪新遊戲（抽選10個單字並顯示預習畫面）
         function initRound() {
             document.getElementById('preview-screen').classList.remove('hidden');
             document.getElementById('game-screen').classList.add('hidden');
@@ -112,10 +125,8 @@
             selectedZhCard = null;
             matchedCount = 0;
 
-            // 隨機抽 10 個單字
             currentRoundData = shuffle([...vocabData]).slice(0, 10);
 
-            // 渲染預習清單
             const previewList = document.getElementById('preview-list');
             previewList.innerHTML = '';
             currentRoundData.forEach(item => {
@@ -133,7 +144,6 @@
             });
         }
 
-        // 從預習切換到遊戲配對畫面
         function startGame() {
             document.getElementById('preview-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
@@ -144,13 +154,11 @@
             engCol.innerHTML = '';
             zhCol.innerHTML = '';
 
-            // 分離中英文並各自洗牌
             let engCards = currentRoundData.map(item => ({ id: item.en, text: item.en, type: 'en' }));
             let zhCards = currentRoundData.map(item => ({ id: item.en, text: item.zh, type: 'zh' }));
             shuffle(engCards);
             shuffle(zhCards);
 
-            // 渲染左邊英文卡片 (放大字體 text-xl)
             engCards.forEach(card => {
                 const el = document.createElement('div');
                 el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
@@ -159,7 +167,6 @@
                 engCol.appendChild(el);
             });
 
-            // 渲染右邊中文卡片 (放大字體 text-xl)
             zhCards.forEach(card => {
                 const el = document.createElement('div');
                 el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
@@ -169,12 +176,11 @@
             });
         }
 
-        // 處理卡片點擊
         function handleCardClick(element, card) {
             if (element.classList.contains('pointer-events-none')) return;
 
             if (card.type === 'en') {
-                speak(card.text); // 點英文發音
+                speak(card.text);
                 if (selectedEngCard) {
                     selectedEngCard.el.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
                 }
@@ -188,16 +194,13 @@
                 element.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
             }
 
-            // 檢查配對
             if (selectedEngCard && selectedZhCard) {
                 const eEl = selectedEngCard.el;
                 const zEl = selectedZhCard.el;
 
-                // 暫時鎖定所有卡片點擊，避免動畫期間亂點出錯
                 document.getElementById('game-screen').classList.add('pointer-events-none');
 
                 if (selectedEngCard.id === selectedZhCard.id) {
-                    // 1. 配對正確：亮綠燈
                     [eEl, zEl].forEach(el => {
                         el.className = 'bg-emerald-500 border-emerald-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
                     });
@@ -206,15 +209,12 @@
                     selectedEngCard = null;
                     selectedZhCard = null;
 
-                    // 0.8秒後淡出隱藏
                     setTimeout(() => {
                         [eEl, zEl].forEach(el => {
                             el.className = 'opacity-0 pointer-events-none rounded-xl p-3 h-20 flex items-center justify-center text-center transition duration-300';
                         });
-                        // 解除鎖定
                         document.getElementById('game-screen').classList.remove('pointer-events-none');
 
-                        // 檢查通關
                         if (matchedCount === 10) {
                             setTimeout(() => {
                                 document.getElementById('game-screen').classList.add('hidden');
@@ -225,28 +225,23 @@
                     }, 800);
 
                 } else {
-                    // 2. 配對錯誤：亮紅燈
                     [eEl, zEl].forEach(el => {
                         el.className = 'bg-rose-500 border-rose-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
                     });
 
-                    // 0.8秒後恢復原狀
                     setTimeout(() => {
                         eEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
                         zEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
                         
                         selectedEngCard = null;
                         selectedZhCard = null;
-                        // 解除鎖定
                         document.getElementById('game-screen').classList.remove('pointer-events-none');
                     }, 800);
                 }
             }
         }
 
-        // 啟動首輪
         initRound();
     </script>
 </body>
-</html>
 </html>
