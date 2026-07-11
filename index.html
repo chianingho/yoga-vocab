@@ -3,46 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yoga Vocab Master</title>
+    <title>Yoga & Daily Vocab Pro</title>
     
     <script>
-        // 終極神奇魔法：用 Canvas 直接在手機本機畫出一個粉嫩的 PNG 圖示，專治 iOS 不服
+        // 桌面可愛 Icon 繪製邏輯
         (function() {
             const canvas = document.createElement('canvas');
-            canvas.width = 180;
-            canvas.height = 180;
+            canvas.width = 180; canvas.height = 180;
             const ctx = canvas.getContext('2d');
-            
-            // 1. 填滿粉嫩背景色
             ctx.fillStyle = '#FFE4E1'; 
             ctx.beginPath();
-            // 畫圓角
             ctx.roundRect ? ctx.roundRect(0, 0, 180, 180, 40) : ctx.rect(0, 0, 180, 180);
             ctx.fill();
-            
-            // 2. 畫上可愛星星 ✨
-            ctx.font = '30px serif';
-            ctx.fillText('✨', 20, 45);
-            
-            // 3. 畫上瑜珈小人 🧘‍♀️
-            ctx.font = '105px serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.font = '30px serif'; ctx.fillText('✨', 20, 45);
+            ctx.font = '105px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText('🧘‍♀️', 90, 105);
-            
-            // 4. 轉成標準 PNG DataURL
             const pngDataUrl = canvas.toDataURL('image/png');
-            
-            // 5. 強行注入到 Head 標籤中
             const linkIcon = document.createElement('link');
-            linkIcon.rel = 'icon';
-            linkIcon.type = 'image/png';
-            linkIcon.href = pngDataUrl;
+            linkIcon.rel = 'icon'; linkIcon.type = 'image/png'; linkIcon.href = pngDataUrl;
             document.head.appendChild(linkIcon);
-            
             const linkApple = document.createElement('link');
-            linkApple.rel = 'apple-touch-icon';
-            linkApple.href = pngDataUrl;
+            linkApple.rel = 'apple-touch-icon'; linkApple.href = pngDataUrl;
             document.head.appendChild(linkApple);
         })();
     </script>
@@ -50,90 +31,180 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-100">
+<body class="bg-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-100">
 
     <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-50 shadow-sm">
-        <h1 class="text-xl font-bold text-slate-800 tracking-wide">🧘‍♀️ 全英瑜珈師資班單字庫</h1>
+        <h1 id="header-title" class="text-xl font-bold text-slate-800">🧘‍♀️ 單字配對樂</h1>
     </header>
 
-    <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-center">
+    <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-start">
         
-        <div id="preview-screen" class="bg-white rounded-2xl p-5 shadow-md w-full">
-            <h2 class="text-lg font-bold text-slate-800 mb-2 text-center">📖 本輪單字預習 (10個單字)</h2>
-            <p class="text-xs text-slate-500 text-center mb-4">點擊下方任意單字可聽發音，準備好就開始挑戰！</p>
-            
-            <div id="preview-list" class="space-y-2.5 max-h-[55vh] overflow-y-auto pr-1">
+        <div id="menu-screen" class="space-y-6 flex flex-col justify-center min-h-[70vh]">
+            <h2 class="text-2xl font-black text-slate-800 text-center mb-4">你想練習什麼？</h2>
+            <button onclick="selectMode('yoga')" class="group relative bg-white border-2 border-indigo-100 p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] text-6xl opacity-10 group-hover:rotate-12 transition-transform">🧘‍♀️</div>
+                <div class="text-left">
+                    <span class="block text-3xl mb-1">峇里島培訓</span>
+                    <span class="text-indigo-600 font-bold tracking-widest text-lg">專業瑜珈解剖 (100+)</span>
                 </div>
-            
-            <button onclick="startGame()" class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition text-lg tracking-wider active:scale-[0.98]">
-                開始遊戲
+            </button>
+            <button onclick="selectMode('daily')" class="group relative bg-white border-2 border-emerald-100 p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] text-6xl opacity-10 group-hover:rotate-12 transition-transform">🏠</div>
+                <div class="text-left">
+                    <span class="block text-3xl mb-1">日常生活</span>
+                    <span class="text-emerald-600 font-bold tracking-widest text-lg">A2-B1 實用單字 (100)</span>
+                </div>
             </button>
         </div>
 
+        <div id="preview-screen" class="hidden bg-white rounded-3xl p-6 shadow-xl w-full animate-pop">
+            <h2 class="text-xl font-black text-slate-800 mb-2 text-center">📖 本輪預習清單</h2>
+            <p class="text-sm text-slate-400 text-center mb-4 italic">點擊英文可聽發音</p>
+            <div id="preview-list" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 hide-scroll"></div>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="showScreen('menu-screen')" class="bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl">返回選單</button>
+                <button onclick="startGame()" class="bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 tracking-widest text-lg">開始挑戰</button>
+            </div>
+        </div>
+
         <div id="game-screen" class="hidden w-full">
-            <p class="text-xs text-slate-500 text-center mb-3">左邊選英文，右邊選中文</p>
+            <div class="flex justify-between items-center mb-4 px-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Left: English</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Right: 中文</span>
+            </div>
             <div class="grid grid-cols-2 gap-4">
                 <div id="english-col" class="flex flex-col gap-3"></div>
                 <div id="chinese-col" class="flex flex-col gap-3"></div>
             </div>
         </div>
 
-        <div id="win-message" class="hidden text-center py-8 bg-white rounded-2xl shadow-md p-6 animate-fade-in">
-            <h2 class="text-2xl font-bold text-emerald-600 mb-2">🎉 太棒了！全部配對成功</h2>
-            <p class="text-sm text-slate-500 mb-4">這 10 個單字你已經有概念囉！</p>
-            <button onclick="initRound()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition">
-                挑戰下一組單字
-            </button>
+        <div id="win-message" class="hidden text-center py-10 bg-white rounded-3xl shadow-2xl p-8 animate-pop">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-black text-emerald-600 mb-2">配對成功！</h2>
+            <p class="text-slate-500 mb-8">這 10 個單字你已經掌握囉！</p>
+            <div class="space-y-3">
+                <button onclick="initRound()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg text-xl tracking-widest">再玩 10 個</button>
+                <button onclick="showScreen('menu-screen')" class="w-full bg-slate-100 text-slate-500 font-bold py-4 rounded-2xl">回到主選單</button>
+            </div>
         </div>
     </main>
 
     <footer id="game-footer" class="hidden p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-100/80 backdrop-blur-md">
-        <button onclick="initRound()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm transition text-center text-sm">
-            重新挑選單字 / 放棄本局
-        </button>
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="showScreen('menu-screen')" class="bg-white border-2 border-slate-200 text-slate-500 font-bold py-3 rounded-xl shadow-sm text-sm">↩️ 返回主頁</button>
+            <button onclick="initRound()" class="bg-slate-800 text-white font-bold py-3 rounded-xl shadow-sm text-sm">🔄 換一組字</button>
+        </div>
     </footer>
 
     <script>
-        const vocabData = [
-            { en: 'Inhale', zh: '吸氣' }, { en: 'Exhale', zh: '吐氣' }, { en: 'Lengthen', zh: '延伸 / 拉長' },
-            { en: 'Engage', zh: '啟動 / 收緊肌肉' }, { en: 'Root down', zh: '向下扎根' }, { en: 'Ground down', zh: '穩固於地面' },
-            { en: 'Micro-bend', zh: '微彎 (膝/肘)' }, { en: 'Tuck the tailbone', zh: '捲尾骨 / 內收' }, { en: 'Draw navel to spine', zh: '肚臍收向脊椎' },
-            { en: 'Knit the ribs in', zh: '肋骨內收不外翻' }, { en: 'Stack your joints', zh: '關節垂直對齊' }, { en: 'Square your hips', zh: '骨盆擺正' },
-            { en: 'Soften', zh: '放鬆 / 柔和' }, { en: 'Melt', zh: '下沉 / 融化' }, { en: 'Internal rotation', zh: '內旋' },
-            { en: 'External rotation', zh: '外旋' }, { en: 'Flex the feet', zh: '勾腳背' }, { en: 'Point the toes', zh: '壓腳背 / 繃腳尖' },
-            { en: 'Gaze / Drishti', zh: '凝視點 / 眼神專注' }, { en: 'Lift / Elevate', zh: '抬起 / 提升' }, { en: 'Press / Push', zh: '推 / 壓' },
-            { en: 'Reach', zh: '向外延伸' }, { en: 'Expand', zh: '擴展 (胸腔)' }, { en: 'Release', zh: '釋放 / 解開動作' },
-            { en: 'Forearm', zh: '小臂 / 前臂' }, { en: 'Thumb', zh: '大拇指' }, { en: 'Wrist', zh: '手腕' },
-            { en: 'Palm', zh: '手掌' }, { en: 'Crown of the head', zh: '頭頂' }, { en: 'Collarbone', zh: '鎖骨' },
-            { en: 'Shoulder blades', zh: '肩胛骨' }, { en: 'Rib cage', zh: '肋骨 / 胸廓' }, { en: 'Spine', zh: '脊椎' },
-            { en: 'Tailbone', zh: '尾骨' }, { en: 'Sacrum', zh: '薦骨 / 骶骨' }, { en: 'Sit bones', zh: '坐骨' },
-            { en: 'Pelvis', zh: '骨盆' }, { en: 'Torso', zh: '軀幹' }, { en: 'Sternum', zh: '胸骨' },
-            { en: 'Thigh', zh: '大腿' }, { en: 'Shin', zh: '小腿前側 / 脛骨' }, { en: 'Calf', zh: '小腿肚' },
-            { en: 'Heel', zh: '腳跟' }, { en: 'Ankle', zh: '腳踝' }, { en: 'Core', zh: '核心肌群' },
-            { en: 'Hamstrings', zh: '大腿後側肌群' }, { en: 'Quadriceps', zh: '大腿前側四頭肌' }, { en: 'Glutes', zh: '臀部肌群' },
-            { en: 'Pelvic floor', zh: '盆底肌' }, { en: 'Psoas', zh: '髂腰肌' }, { en: 'Downward-Facing Dog', zh: '下犬式' },
-            { en: 'Upward-Facing Dog', zh: '上犬式' }, { en: 'Warrior Pose', zh: '戰士式' }, { en: 'Child’s Pose', zh: '嬰兒式' },
-            { en: 'Plank Pose', zh: '平板式' }, { en: 'Cobra Pose', zh: '眼鏡蛇式' }, { en: 'Mountain Pose', zh: '山式' },
-            { en: 'Corpse Pose / Savasana', zh: '大休息' }, { en: 'Forward Fold', zh: '前彎' }, { en: 'Halfway Lift', zh: '半前彎 / 脊椎延伸' },
-            { en: 'Chairs Pose', zh: '幻椅式' }, { en: 'Chaturanga', zh: '四柱支撐' }, { en: 'Pranayama', zh: '呼吸法 / 調息' },
-            { en: 'Asana', zh: '體位法' }, { en: 'Vinyasa', zh: '動態串聯' }, { en: 'Alignment', zh: '正位 / 對位' },
-            { en: 'Modification', zh: '退階動作' }, { en: 'Progression', zh: '進階動作' }, { en: 'Props', zh: '輔具 (磚/繩)' },
-            { en: 'Mat', zh: '瑜珈墊' }
-        ];
+        const allVocab = {
+            yoga: [
+                // 100% PPT Lessons 1-6
+                { en: 'Spine', zh: '脊椎' }, { en: 'Vertebrae', zh: '脊椎骨' }, { en: 'Cervical Spine', zh: '頸椎' },
+                { en: 'Thoracic Spine', zh: '胸椎' }, { en: 'Lumbar Spine', zh: '腰椎' }, { en: 'Sacrum', zh: '薦骨' },
+                { en: 'Pelvis', zh: '骨盆' }, { en: 'Sit Bones', zh: '坐骨' }, { en: 'Ribcage', zh: '肋骨' },
+                { en: 'Sternum', zh: '胸骨' }, { en: 'Shoulder Girdle', zh: '肩帶' }, { en: 'Collarbones', zh: '鎖骨' },
+                { en: 'Shoulder Blades', zh: '肩胛骨' }, { en: 'Hip Joint', zh: '髖關節' }, { en: 'Hip Flexors', zh: '髖屈肌' },
+                { en: 'Neutral Alignment', zh: '中立對位' }, { en: 'Midline', zh: '中線' }, { en: 'Anterior', zh: '身體前側' },
+                { en: 'Posterior', zh: '身體後側' }, { en: 'Tailbone', zh: '尾骨' }, { en: 'Intervertebral Disc', zh: '椎間盤' },
+                { en: 'Spinal Flexion', zh: '脊椎屈曲' }, { en: 'Spinal Extension', zh: '脊椎伸展' }, { en: 'Spinal Rotation', zh: '脊椎旋轉' },
+                { en: 'Lateral Flexion', zh: '側屈' }, { en: 'Core', zh: '核心' }, { en: 'Transverse Abdominis', zh: '腹橫肌' },
+                { en: 'Pelvic Floor', zh: '盆底肌' }, { en: 'Diaphragm', zh: '橫膈膜' }, { en: 'Navel', zh: '肚臍' },
+                { en: 'Mula Bandha', zh: '根鎖' }, { en: 'Uddiyana Bandha', zh: '上行氣鎖' }, { en: 'Quadriceps', zh: '股四頭肌' },
+                { en: 'Hamstrings', zh: '膕繩肌' }, { en: 'Glutes', zh: '臀大肌' }, { en: 'Gluteus Medius', zh: '臀中肌' },
+                { en: 'Adductors', zh: '內收肌群' }, { en: 'Abductors', zh: '外展肌群' }, { en: 'IT Band', zh: '髂脛束' },
+                { en: 'Calves', zh: '小腿肚' }, { en: 'Ankle', zh: '腳踝' }, { en: 'Arch of the Foot', zh: '足弓' },
+                { en: 'Heel', zh: '腳跟' }, { en: 'Femur', zh: '股骨' }, { en: 'Knee Joint', zh: '膝關節' },
+                { en: 'Plantar Fascia', zh: '足底筋膜' }, { en: 'Dorsiflexion', zh: '腳背屈' }, { en: 'Plantarflexion', zh: '蹠屈' },
+                { en: 'Soleus', zh: '比目魚肌' }, { en: 'Rotator Cuff', zh: '旋轉肌群' }, { en: 'Deltoid', zh: '三角肌' },
+                { en: 'Biceps', zh: '二頭肌' }, { en: 'Triceps', zh: '三頭肌' }, { en: 'Pectorals', zh: '胸肌' },
+                { en: 'Rhomboids', zh: '菱形肌' }, { en: 'Trapezius', zh: '斜方肌' }, { en: 'Serratus Anterior', zh: '前鋸肌' },
+                { en: 'Latissimus Dorsi', zh: '背闊肌' }, { en: 'Wrist', zh: '手腕' }, { en: 'Elbow', zh: '手肘' },
+                { en: 'Internal Rotation', zh: '內旋' }, { en: 'External Rotation', zh: '外旋' }, { en: 'Scapular Depression', zh: '肩胛骨下壓' },
+                { en: 'Scapular Retraction', zh: '肩胛骨後縮' }, { en: 'Humerus', zh: '肱骨' }, { en: 'Engage', zh: '啟動' },
+                { en: 'Release', zh: '放鬆' }, { en: 'Lengthen', zh: '延伸' }, { en: 'Compress', zh: '擠壓' },
+                { en: 'Rotate', zh: '旋轉' }, { en: 'Flex', zh: '彎曲' }, { en: 'Extend', zh: '伸展' },
+                { en: 'Tuck', zh: '內捲' }, { en: 'Draw In', zh: '內收' }, { en: 'Ground Down', zh: '紮根' },
+                { en: 'Stack', zh: '疊放' }, { en: 'Open', zh: '打開' }, { en: 'Soften', zh: '柔化' },
+                { en: 'Hinge', zh: '鉸鏈動作' }, { en: 'Melt', zh: '融化' }, { en: 'Spiral', zh: '螺旋' },
+                { en: 'Press / Push', zh: '推壓' }, { en: 'Reach', zh: '延伸伸出' }, { en: 'Stabilise', zh: '穩定' },
+                { en: 'Scoop', zh: '挖勺' }, { en: 'Tension', zh: '緊繃' }, { en: 'Tightness', zh: '緊縮' },
+                { en: 'Stiffness', zh: '僵硬' }, { en: 'Soreness', zh: '痠痛' }, { en: 'Discomfort', zh: '不適感' },
+                { en: 'Sharp Pain', zh: '刺痛' }, { en: 'Dull Ache', zh: '悶痛' }, { en: 'Burning Sensation', zh: '灼熱感' },
+                { en: 'Tingling', zh: '麻刺感' }, { en: 'Numbness', zh: '麻木感' }, { en: 'Sensation', zh: '感覺' },
+                { en: 'Breathe Into It', zh: '帶入呼吸' }, { en: 'Edge', zh: '邊界感' }, { en: 'Intensity', zh: '強度' },
+                { en: 'Radiating Pain', zh: '放射性痛' }, { en: 'Clicking / Popping', zh: '喀喀聲' }, { en: 'Opening', zh: '開展感' },
+                { en: 'Awareness', zh: '覺知' }
+            ],
+            daily: [
+                // 100 Daily Vocab (A2-B1)
+                { en: 'Remote control', zh: '遙控器' }, { en: 'Seasoning', zh: '調味料' }, { en: 'Laundry', zh: '待洗衣物' },
+                { en: 'Refrigerator', zh: '冰箱' }, { en: 'Microwave', zh: '微波爐' }, { en: 'Umbrella', zh: '雨傘' },
+                { en: 'Battery', zh: '電池' }, { en: 'Receipt', zh: '收據' }, { en: 'Mirror', zh: '鏡子' },
+                { en: 'Wallet', zh: '錢包' }, { en: 'Pillow', zh: '枕頭' }, { en: 'Towel', zh: '毛巾' },
+                { en: 'Toothbrush', zh: '牙刷' }, { en: 'Shampoo', zh: '洗髮精' }, { en: 'Soap', zh: '肥皂' },
+                { en: 'Elevator', zh: '電梯' }, { en: 'Escalator', zh: '手扶梯' }, { en: 'Calendar', zh: '日曆' },
+                { en: 'Backpack', zh: '背包' }, { en: 'Sunglasses', zh: '太陽眼鏡' }, { en: 'Charger', zh: '充電器' },
+                { en: 'Earphones', zh: '耳機' }, { en: 'Tissue', zh: '衛生紙' }, { en: 'Scissors', zh: '剪刀' },
+                { en: 'Sunscreen', zh: '防曬乳' }, { en: 'Mosquito repellent', zh: '防蚊液' }, { en: 'Scooter', zh: '機車' },
+                { en: 'Helmet', zh: '安全帽' }, { en: 'Negotiate', zh: '議價/談判' }, { en: 'Currency', zh: '貨幣' },
+                { en: 'Atmosphere', zh: '氣氛' }, { en: 'Delicious', zh: '美味的' }, { en: 'Ingredients', zh: '成分/食材' },
+                { en: 'Reservation', zh: '預訂' }, { en: 'Destination', zh: '目的地' }, { en: 'Itinerary', zh: '行程' },
+                { en: 'Boarding pass', zh: '登機證' }, { en: 'Luggage', zh: '行李' }, { en: 'Souvenir', zh: '紀念品' },
+                { en: 'Pharmacy', zh: '藥局' }, { en: 'Supermarket', zh: '超市' }, { en: 'Appointment', zh: '預約/約會' },
+                { en: 'Permission', zh: '許可' }, { en: 'Experience', zh: '經驗/體驗' }, { en: 'Improve', zh: '改善/進步' },
+                { en: 'Confident', zh: '自信的' }, { en: 'Challenge', zh: '挑戰' }, { en: 'Opportunity', zh: '機會' },
+                { en: 'Neighborhood', zh: '鄰近地區' }, { en: 'Situation', zh: '情況' }, { en: 'Temperature', zh: '溫度' },
+                { en: 'Humidity', zh: '濕度' }, { en: 'Raincoat', zh: '雨衣' }, { en: 'Delivery', zh: '外送/遞送' },
+                { en: 'Discount', zh: '折扣' }, { en: 'Schedule', zh: '行程表' }, { en: 'Deadline', zh: '截止日期' },
+                { en: 'Brainstorm', zh: '集思廣益' }, { en: 'Presentation', zh: '簡報' }, { en: 'Laptop', zh: '筆電' },
+                { en: 'Password', zh: '密碼' }, { en: 'Attachment', zh: '附件' }, { en: 'Conversation', zh: '對話' },
+                { en: 'Difference', zh: '差別' }, { en: 'Actually', zh: '實際上' }, { en: 'Probably', zh: '大概/可能' },
+                { en: 'Especially', zh: '尤其是' }, { en: 'Creative', zh: '有創意的' }, { en: 'Successful', zh: '成功的' },
+                { en: 'Regularly', zh: '規律地' }, { en: 'Comfortable', zh: '舒服的' }, { en: 'Expensive', zh: '昂貴的' },
+                { en: 'Flexible', zh: '有彈性的' }, { en: 'Reliable', zh: '可靠的' }, { en: 'Responsible', zh: '負責任的' },
+                { en: 'Immediate', zh: '立即的' }, { en: 'Sufficient', zh: '充足的' }, { en: 'Excellent', zh: '優秀的' },
+                { en: 'Incredible', zh: '不可思議的' }, { en: 'Satisfied', zh: '滿意的' }, { en: 'Concentrate', zh: '集中精神' },
+                { en: 'Encourage', zh: '鼓勵' }, { en: 'Recognize', zh: '辨認/承認' }, { en: 'Organize', zh: '組織/整理' },
+                { en: 'Participate', zh: '參加' }, { en: 'Translate', zh: '翻譯' }, { en: 'Adventure', zh: '冒險' },
+                { en: 'Background', zh: '背景' }, { en: 'Budget', zh: '預算' }, { en: 'Collection', zh: '收藏' },
+                { en: 'Description', zh: '描述' }, { en: 'Environment', zh: '環境' }, { en: 'Equipment', zh: '設備' },
+                { en: 'Instruction', zh: '指示' }, { en: 'Knowledge', zh: '知識' }, { en: 'Performance', zh: '表現' },
+                { en: 'Quality', zh: '品質' }, { en: 'Service', zh: '服務' }, { en: 'Strategy', zh: '策略' }
+            ]
+        };
 
+        let currentMode = 'yoga';
         let currentRoundData = [];
         let selectedEngCard = null;
         let selectedZhCard = null;
         let matchedCount = 0;
+
+        function showScreen(screenId) {
+            ['menu-screen', 'preview-screen', 'game-screen', 'win-message'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById('game-footer').classList.toggle('hidden', screenId !== 'game-screen' && screenId !== 'preview-screen');
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('header-title').innerText = mode === 'yoga' ? '🧘‍♀️ 瑜珈解剖單字' : '🏠 日常生活單字';
+            initRound();
+        }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
-                utterance.rate = 0.85; 
+                utterance.rate = 0.8;
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -143,64 +214,40 @@
         }
 
         function initRound() {
-            document.getElementById('preview-screen').classList.remove('hidden');
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('game-footer').classList.add('hidden');
-            document.getElementById('win-message').classList.add('hidden');
+            selectedEngCard = null; selectedZhCard = null; matchedCount = 0;
+            currentRoundData = shuffle([...allVocab[currentMode]]).slice(0, 10);
             
-            selectedEngCard = null;
-            selectedZhCard = null;
-            matchedCount = 0;
-
-            currentRoundData = shuffle([...vocabData]).slice(0, 10);
-
             const previewList = document.getElementById('preview-list');
             previewList.innerHTML = '';
             currentRoundData.forEach(item => {
                 const row = document.createElement('div');
-                row.className = 'flex items-center justify-between bg-slate-50 border border-slate-200 p-3 rounded-xl cursor-pointer active:bg-indigo-50 transition shadow-sm';
+                row.className = 'flex items-center justify-between bg-white border border-slate-200 p-4 rounded-2xl cursor-pointer active:bg-indigo-50 transition shadow-sm';
                 row.onclick = () => speak(item.en);
-                row.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <span class="text-base font-bold text-indigo-900">${item.en}</span>
-                        <span class="text-xs text-slate-400">🔊</span>
-                    </div>
-                    <span class="text-base font-medium text-slate-600">${item.zh}</span>
-                `;
+                row.innerHTML = `<span class="text-lg font-bold text-indigo-900">${item.en}</span><span class="text-lg text-slate-500">${item.zh}</span>`;
                 previewList.appendChild(row);
             });
+            showScreen('preview-screen');
         }
 
         function startGame() {
-            document.getElementById('preview-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('game-footer').classList.remove('hidden');
-
+            showScreen('game-screen');
             const engCol = document.getElementById('english-col');
             const zhCol = document.getElementById('chinese-col');
-            engCol.innerHTML = '';
-            zhCol.innerHTML = '';
+            engCol.innerHTML = ''; zhCol.innerHTML = '';
 
-            let engCards = currentRoundData.map(item => ({ id: item.en, text: item.en, type: 'en' }));
-            let zhCards = currentRoundData.map(item => ({ id: item.en, text: item.zh, type: 'zh' }));
-            shuffle(engCards);
-            shuffle(zhCards);
+            let engCards = shuffle(currentRoundData.map(i => ({ id: i.en, text: i.en, type: 'en' })));
+            let zhCards = shuffle(currentRoundData.map(i => ({ id: i.en, text: i.zh, type: 'zh' })));
 
-            engCards.forEach(card => {
+            const createCard = (card, container) => {
                 const el = document.createElement('div');
-                el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
+                el.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight select-none';
                 el.innerText = card.text;
                 el.onclick = () => handleCardClick(el, card);
-                engCol.appendChild(el);
-            });
+                container.appendChild(el);
+            };
 
-            zhCards.forEach(card => {
-                const el = document.createElement('div');
-                el.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
-                el.innerText = card.text;
-                el.onclick = () => handleCardClick(el, card);
-                zhCol.appendChild(el);
-            });
+            engCards.forEach(c => createCard(c, engCol));
+            zhCards.forEach(c => createCard(c, zhCol));
         }
 
         function handleCardClick(element, card) {
@@ -208,67 +255,39 @@
 
             if (card.type === 'en') {
                 speak(card.text);
-                if (selectedEngCard) {
-                    selectedEngCard.el.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
-                }
+                if (selectedEngCard) selectedEngCard.el.classList.replace('border-indigo-600', 'border-slate-200');
                 selectedEngCard = { el: element, id: card.id };
-                element.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
+                element.classList.replace('border-slate-200', 'border-indigo-600');
             } else {
-                if (selectedZhCard) {
-                    selectedZhCard.el.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
-                }
+                if (selectedZhCard) selectedZhCard.el.classList.replace('border-indigo-600', 'border-slate-200');
                 selectedZhCard = { el: element, id: card.id };
-                element.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
+                element.classList.replace('border-slate-200', 'border-indigo-600');
             }
 
             if (selectedEngCard && selectedZhCard) {
-                const eEl = selectedEngCard.el;
-                const zEl = selectedZhCard.el;
-
+                const eEl = selectedEngCard.el; const zEl = selectedZhCard.el;
                 document.getElementById('game-screen').classList.add('pointer-events-none');
 
                 if (selectedEngCard.id === selectedZhCard.id) {
-                    [eEl, zEl].forEach(el => {
-                        el.className = 'bg-emerald-500 border-emerald-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
-                    });
-
-                    matchedCount++;
-                    selectedEngCard = null;
-                    selectedZhCard = null;
-
+                    [eEl, zEl].forEach(el => el.className = 'bg-emerald-500 border-emerald-600 text-white rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-lg transition duration-200 animate-pop');
+                    matchedCount++; selectedEngCard = null; selectedZhCard = null;
                     setTimeout(() => {
-                        [eEl, zEl].forEach(el => {
-                            el.className = 'opacity-0 pointer-events-none rounded-xl p-3 h-20 flex items-center justify-center text-center transition duration-300';
-                        });
+                        [eEl, zEl].forEach(el => el.classList.add('opacity-0', 'pointer-events-none'));
                         document.getElementById('game-screen').classList.remove('pointer-events-none');
-
-                        if (matchedCount === 10) {
-                            setTimeout(() => {
-                                document.getElementById('game-screen').classList.add('hidden');
-                                document.getElementById('game-footer').classList.add('hidden');
-                                document.getElementById('win-message').classList.remove('hidden');
-                            }, 300);
-                        }
+                        if (matchedCount === 10) showScreen('win-message');
                     }, 800);
-
                 } else {
-                    [eEl, zEl].forEach(el => {
-                        el.className = 'bg-rose-500 border-rose-600 text-white rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl shadow-md transition duration-200';
-                    });
-
+                    [eEl, zEl].forEach(el => el.className = 'bg-rose-500 border-rose-600 text-white rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-lg transition duration-200');
                     setTimeout(() => {
-                        eEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-indigo-950 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
-                        zEl.className = 'bg-white border-2 border-slate-200 rounded-xl p-3 h-20 flex items-center justify-center text-center font-bold text-xl text-slate-800 shadow-sm cursor-pointer transition active:scale-95 leading-tight';
-                        
-                        selectedEngCard = null;
-                        selectedZhCard = null;
+                        eEl.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight';
+                        zEl.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight';
+                        selectedEngCard = null; selectedZhCard = null;
                         document.getElementById('game-screen').classList.remove('pointer-events-none');
                     }, 800);
                 }
             }
         }
-
-        initRound();
+        showScreen('menu-screen');
     </script>
 </body>
 </html>
