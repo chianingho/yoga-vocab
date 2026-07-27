@@ -2,292 +2,1358 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yoga & Daily Vocab Pro</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vocab Matcher</title>
+
+    <!-- Google Fonts: DM Serif Display, Inter, Caveat, Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <script>
-        // 桌面可愛 Icon 繪製邏輯
-        (function() {
+        // 繪製款式 A: Monogram "VM"
+        function generateIconA() {
             const canvas = document.createElement('canvas');
             canvas.width = 180; canvas.height = 180;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#FFE4E1'; 
+
+            ctx.fillStyle = '#355C7D';
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(0, 0, 180, 180, 42) : ctx.rect(0, 0, 180, 180);
+            ctx.fill();
+
+            ctx.strokeStyle = '#D9D3C8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#F7E36A';
+            ctx.fillRect(115, 128, 32, 6);
+
+            ctx.fillStyle = '#FFFDF8';
+            ctx.font = '700 72px "DM Serif Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('VM', 90, 88);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // 繪製款式 B: 幾何手繪層疊卡片 (Overlapping Cards)
+        function generateIconB() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180; canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#FFFDF8';
             ctx.beginPath();
             ctx.roundRect ? ctx.roundRect(0, 0, 180, 180, 40) : ctx.rect(0, 0, 180, 180);
             ctx.fill();
-            ctx.font = '30px serif'; ctx.fillText('✨', 20, 45);
-            ctx.font = '105px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('🧘‍♀️', 90, 105);
-            const pngDataUrl = canvas.toDataURL('image/png');
+
+            ctx.strokeStyle = '#ECE7DE';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(72, 98);
+            ctx.rotate(-0.15);
+            ctx.fillStyle = '#F7E36A';
+            ctx.strokeStyle = '#355C7D';
+            ctx.lineWidth = 4.5;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(-28, -38, 56, 76, 10) : ctx.rect(-28, -38, 56, 76);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(108, 88);
+            ctx.rotate(0.1);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#355C7D';
+            ctx.lineWidth = 4.5;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(-28, -38, 56, 76, 10) : ctx.rect(-28, -38, 56, 76);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#777777';
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(-14, -14); ctx.lineTo(14, -14);
+            ctx.moveTo(-14, 0); ctx.lineTo(8, 0);
+            ctx.moveTo(-14, 14); ctx.lineTo(14, 14);
+            ctx.stroke();
+            ctx.restore();
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // 初始化套用 Saved Icon
+        (function() {
+            const savedStyle = localStorage.getItem('vocab_matcher_icon_style') || 'A';
+            const iconDataUrl = (savedStyle === 'B') ? generateIconB() : generateIconA();
+
             const linkIcon = document.createElement('link');
-            linkIcon.rel = 'icon'; linkIcon.type = 'image/png'; linkIcon.href = pngDataUrl;
+            linkIcon.rel = 'icon'; linkIcon.type = 'image/png'; linkIcon.href = iconDataUrl;
             document.head.appendChild(linkIcon);
+
             const linkApple = document.createElement('link');
-            linkApple.rel = 'apple-touch-icon'; linkApple.href = pngDataUrl;
+            linkApple.rel = 'apple-touch-icon'; linkApple.href = iconDataUrl;
             document.head.appendChild(linkApple);
         })();
     </script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
-    </style>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-100">
-
-    <header class="bg-white border-b border-slate-200 py-4 px-6 text-center sticky top-0 z-50 shadow-sm">
-        <h1 id="header-title" class="text-xl font-bold text-slate-800">🧘‍♀️ 單字配對樂</h1>
-    </header>
-
-    <main class="flex-grow p-4 max-w-md mx-auto w-full flex flex-col justify-start">
-        
-        <div id="menu-screen" class="space-y-6 flex flex-col justify-center min-h-[70vh]">
-            <h2 class="text-2xl font-black text-slate-800 text-center mb-4">你想練習什麼？</h2>
-            <button onclick="selectMode('yoga')" class="group relative bg-white border-2 border-indigo-100 p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden">
-                <div class="absolute right-[-10px] top-[-10px] text-6xl opacity-10 group-hover:rotate-12 transition-transform">🧘‍♀️</div>
-                <div class="text-left">
-                    <span class="block text-3xl mb-1">峇里島培訓</span>
-                    <span class="text-indigo-600 font-bold tracking-widest text-lg">專業瑜珈解剖 (100+)</span>
-                </div>
-            </button>
-            <button onclick="selectMode('daily')" class="group relative bg-white border-2 border-emerald-100 p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all active:scale-95 overflow-hidden">
-                <div class="absolute right-[-10px] top-[-10px] text-6xl opacity-10 group-hover:rotate-12 transition-transform">🏠</div>
-                <div class="text-left">
-                    <span class="block text-3xl mb-1">日常生活</span>
-                    <span class="text-emerald-600 font-bold tracking-widest text-lg">A2-B1 實用單字 (100)</span>
-                </div>
-            </button>
-        </div>
-
-        <div id="preview-screen" class="hidden bg-white rounded-3xl p-6 shadow-xl w-full animate-pop">
-            <h2 class="text-xl font-black text-slate-800 mb-2 text-center">📖 本輪預習清單</h2>
-            <p class="text-sm text-slate-400 text-center mb-4 italic">點擊英文可聽發音</p>
-            <div id="preview-list" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 hide-scroll"></div>
-            <div class="grid grid-cols-2 gap-3 mt-6">
-                <button onclick="showScreen('menu-screen')" class="bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl">返回選單</button>
-                <button onclick="startGame()" class="bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 tracking-widest text-lg">開始挑戰</button>
-            </div>
-        </div>
-
-        <div id="game-screen" class="hidden w-full">
-            <div class="flex justify-between items-center mb-4 px-2">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Left: English</span>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Right: 中文</span>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div id="english-col" class="flex flex-col gap-3"></div>
-                <div id="chinese-col" class="flex flex-col gap-3"></div>
-            </div>
-        </div>
-
-        <div id="win-message" class="hidden text-center py-10 bg-white rounded-3xl shadow-2xl p-8 animate-pop">
-            <div class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-black text-emerald-600 mb-2">配對成功！</h2>
-            <p class="text-slate-500 mb-8">這 10 個單字你已經掌握囉！</p>
-            <div class="space-y-3">
-                <button onclick="initRound()" class="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg text-xl tracking-widest">再玩 10 個</button>
-                <button onclick="showScreen('menu-screen')" class="w-full bg-slate-100 text-slate-500 font-bold py-4 rounded-2xl">回到主選單</button>
-            </div>
-        </div>
-    </main>
-
-    <footer id="game-footer" class="hidden p-4 max-w-md mx-auto w-full sticky bottom-0 bg-slate-100/80 backdrop-blur-md">
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="showScreen('menu-screen')" class="bg-white border-2 border-slate-200 text-slate-500 font-bold py-3 rounded-xl shadow-sm text-sm">↩️ 返回主頁</button>
-            <button onclick="initRound()" class="bg-slate-800 text-white font-bold py-3 rounded-xl shadow-sm text-sm">🔄 換一組字</button>
-        </div>
-    </footer>
-
-    <script>
-        const allVocab = {
-            yoga: [
-                // 100% PPT Lessons 1-6
-                { en: 'Spine', zh: '脊椎' }, { en: 'Vertebrae', zh: '脊椎骨' }, { en: 'Cervical Spine', zh: '頸椎' },
-                { en: 'Thoracic Spine', zh: '胸椎' }, { en: 'Lumbar Spine', zh: '腰椎' }, { en: 'Sacrum', zh: '薦骨' },
-                { en: 'Pelvis', zh: '骨盆' }, { en: 'Sit Bones', zh: '坐骨' }, { en: 'Ribcage', zh: '肋骨' },
-                { en: 'Sternum', zh: '胸骨' }, { en: 'Shoulder Girdle', zh: '肩帶' }, { en: 'Collarbones', zh: '鎖骨' },
-                { en: 'Shoulder Blades', zh: '肩胛骨' }, { en: 'Hip Joint', zh: '髖關節' }, { en: 'Hip Flexors', zh: '髖屈肌' },
-                { en: 'Neutral Alignment', zh: '中立對位' }, { en: 'Midline', zh: '中線' }, { en: 'Anterior', zh: '身體前側' },
-                { en: 'Posterior', zh: '身體後側' }, { en: 'Tailbone', zh: '尾骨' }, { en: 'Intervertebral Disc', zh: '椎間盤' },
-                { en: 'Spinal Flexion', zh: '脊椎屈曲' }, { en: 'Spinal Extension', zh: '脊椎伸展' }, { en: 'Spinal Rotation', zh: '脊椎旋轉' },
-                { en: 'Lateral Flexion', zh: '側屈' }, { en: 'Core', zh: '核心' }, { en: 'Transverse Abdominis', zh: '腹橫肌' },
-                { en: 'Pelvic Floor', zh: '盆底肌' }, { en: 'Diaphragm', zh: '橫膈膜' }, { en: 'Navel', zh: '肚臍' },
-                { en: 'Mula Bandha', zh: '根鎖' }, { en: 'Uddiyana Bandha', zh: '上行氣鎖' }, { en: 'Quadriceps', zh: '股四頭肌' },
-                { en: 'Hamstrings', zh: '膕繩肌' }, { en: 'Glutes', zh: '臀大肌' }, { en: 'Gluteus Medius', zh: '臀中肌' },
-                { en: 'Adductors', zh: '內收肌群' }, { en: 'Abductors', zh: '外展肌群' }, { en: 'IT Band', zh: '髂脛束' },
-                { en: 'Calves', zh: '小腿肚' }, { en: 'Ankle', zh: '腳踝' }, { en: 'Arch of the Foot', zh: '足弓' },
-                { en: 'Heel', zh: '腳跟' }, { en: 'Femur', zh: '股骨' }, { en: 'Knee Joint', zh: '膝關節' },
-                { en: 'Plantar Fascia', zh: '足底筋膜' }, { en: 'Dorsiflexion', zh: '腳背屈' }, { en: 'Plantarflexion', zh: '蹠屈' },
-                { en: 'Soleus', zh: '比目魚肌' }, { en: 'Rotator Cuff', zh: '旋轉肌群' }, { en: 'Deltoid', zh: '三角肌' },
-                { en: 'Biceps', zh: '二頭肌' }, { en: 'Triceps', zh: '三頭肌' }, { en: 'Pectorals', zh: '胸肌' },
-                { en: 'Rhomboids', zh: '菱形肌' }, { en: 'Trapezius', zh: '斜方肌' }, { en: 'Serratus Anterior', zh: '前鋸肌' },
-                { en: 'Latissimus Dorsi', zh: '背闊肌' }, { en: 'Wrist', zh: '手腕' }, { en: 'Elbow', zh: '手肘' },
-                { en: 'Internal Rotation', zh: '內旋' }, { en: 'External Rotation', zh: '外旋' }, { en: 'Scapular Depression', zh: '肩胛骨下壓' },
-                { en: 'Scapular Retraction', zh: '肩胛骨後縮' }, { en: 'Humerus', zh: '肱骨' }, { en: 'Engage', zh: '啟動' },
-                { en: 'Release', zh: '放鬆' }, { en: 'Lengthen', zh: '延伸' }, { en: 'Compress', zh: '擠壓' },
-                { en: 'Rotate', zh: '旋轉' }, { en: 'Flex', zh: '彎曲' }, { en: 'Extend', zh: '伸展' },
-                { en: 'Tuck', zh: '內捲' }, { en: 'Draw In', zh: '內收' }, { en: 'Ground Down', zh: '紮根' },
-                { en: 'Stack', zh: '疊放' }, { en: 'Open', zh: '打開' }, { en: 'Soften', zh: '柔化' },
-                { en: 'Hinge', zh: '鉸鏈動作' }, { en: 'Melt', zh: '融化' }, { en: 'Spiral', zh: '螺旋' },
-                { en: 'Press / Push', zh: '推壓' }, { en: 'Reach', zh: '延伸伸出' }, { en: 'Stabilise', zh: '穩定' },
-                { en: 'Scoop', zh: '挖勺' }, { en: 'Tension', zh: '緊繃' }, { en: 'Tightness', zh: '緊縮' },
-                { en: 'Stiffness', zh: '僵硬' }, { en: 'Soreness', zh: '痠痛' }, { en: 'Discomfort', zh: '不適感' },
-                { en: 'Sharp Pain', zh: '刺痛' }, { en: 'Dull Ache', zh: '悶痛' }, { en: 'Burning Sensation', zh: '灼熱感' },
-                { en: 'Tingling', zh: '麻刺感' }, { en: 'Numbness', zh: '麻木感' }, { en: 'Sensation', zh: '感覺' },
-                { en: 'Breathe Into It', zh: '帶入呼吸' }, { en: 'Edge', zh: '邊界感' }, { en: 'Intensity', zh: '強度' },
-                { en: 'Radiating Pain', zh: '放射性痛' }, { en: 'Clicking / Popping', zh: '喀喀聲' }, { en: 'Opening', zh: '開展感' },
-                { en: 'Awareness', zh: '覺知' }
-            ],
-            daily: [
-                // 100 Daily Vocab (A2-B1)
-                { en: 'Remote control', zh: '遙控器' }, { en: 'Seasoning', zh: '調味料' }, { en: 'Laundry', zh: '待洗衣物' },
-                { en: 'Refrigerator', zh: '冰箱' }, { en: 'Microwave', zh: '微波爐' }, { en: 'Umbrella', zh: '雨傘' },
-                { en: 'Battery', zh: '電池' }, { en: 'Receipt', zh: '收據' }, { en: 'Mirror', zh: '鏡子' },
-                { en: 'Wallet', zh: '錢包' }, { en: 'Pillow', zh: '枕頭' }, { en: 'Towel', zh: '毛巾' },
-                { en: 'Toothbrush', zh: '牙刷' }, { en: 'Shampoo', zh: '洗髮精' }, { en: 'Soap', zh: '肥皂' },
-                { en: 'Elevator', zh: '電梯' }, { en: 'Escalator', zh: '手扶梯' }, { en: 'Calendar', zh: '日曆' },
-                { en: 'Backpack', zh: '背包' }, { en: 'Sunglasses', zh: '太陽眼鏡' }, { en: 'Charger', zh: '充電器' },
-                { en: 'Earphones', zh: '耳機' }, { en: 'Tissue', zh: '衛生紙' }, { en: 'Scissors', zh: '剪刀' },
-                { en: 'Sunscreen', zh: '防曬乳' }, { en: 'Mosquito repellent', zh: '防蚊液' }, { en: 'Scooter', zh: '機車' },
-                { en: 'Helmet', zh: '安全帽' }, { en: 'Negotiate', zh: '議價/談判' }, { en: 'Currency', zh: '貨幣' },
-                { en: 'Atmosphere', zh: '氣氛' }, { en: 'Delicious', zh: '美味的' }, { en: 'Ingredients', zh: '成分/食材' },
-                { en: 'Reservation', zh: '預訂' }, { en: 'Destination', zh: '目的地' }, { en: 'Itinerary', zh: '行程' },
-                { en: 'Boarding pass', zh: '登機證' }, { en: 'Luggage', zh: '行李' }, { en: 'Souvenir', zh: '紀念品' },
-                { en: 'Pharmacy', zh: '藥局' }, { en: 'Supermarket', zh: '超市' }, { en: 'Appointment', zh: '預約/約會' },
-                { en: 'Permission', zh: '許可' }, { en: 'Experience', zh: '經驗/體驗' }, { en: 'Improve', zh: '改善/進步' },
-                { en: 'Confident', zh: '自信的' }, { en: 'Challenge', zh: '挑戰' }, { en: 'Opportunity', zh: '機會' },
-                { en: 'Neighborhood', zh: '鄰近地區' }, { en: 'Situation', zh: '情況' }, { en: 'Temperature', zh: '溫度' },
-                { en: 'Humidity', zh: '濕度' }, { en: 'Raincoat', zh: '雨衣' }, { en: 'Delivery', zh: '外送/遞送' },
-                { en: 'Discount', zh: '折扣' }, { en: 'Schedule', zh: '行程表' }, { en: 'Deadline', zh: '截止日期' },
-                { en: 'Brainstorm', zh: '集思廣益' }, { en: 'Presentation', zh: '簡報' }, { en: 'Laptop', zh: '筆電' },
-                { en: 'Password', zh: '密碼' }, { en: 'Attachment', zh: '附件' }, { en: 'Conversation', zh: '對話' },
-                { en: 'Difference', zh: '差別' }, { en: 'Actually', zh: '實際上' }, { en: 'Probably', zh: '大概/可能' },
-                { en: 'Especially', zh: '尤其是' }, { en: 'Creative', zh: '有創意的' }, { en: 'Successful', zh: '成功的' },
-                { en: 'Regularly', zh: '規律地' }, { en: 'Comfortable', zh: '舒服的' }, { en: 'Expensive', zh: '昂貴的' },
-                { en: 'Flexible', zh: '有彈性的' }, { en: 'Reliable', zh: '可靠的' }, { en: 'Responsible', zh: '負責任的' },
-                { en: 'Immediate', zh: '立即的' }, { en: 'Sufficient', zh: '充足的' }, { en: 'Excellent', zh: '優秀的' },
-                { en: 'Incredible', zh: '不可思議的' }, { en: 'Satisfied', zh: '滿意的' }, { en: 'Concentrate', zh: '集中精神' },
-                { en: 'Encourage', zh: '鼓勵' }, { en: 'Recognize', zh: '辨認/承認' }, { en: 'Organize', zh: '組織/整理' },
-                { en: 'Participate', zh: '參加' }, { en: 'Translate', zh: '翻譯' }, { en: 'Adventure', zh: '冒險' },
-                { en: 'Background', zh: '背景' }, { en: 'Budget', zh: '預算' }, { en: 'Collection', zh: '收藏' },
-                { en: 'Description', zh: '描述' }, { en: 'Environment', zh: '環境' }, { en: 'Equipment', zh: '設備' },
-                { en: 'Instruction', zh: '指示' }, { en: 'Knowledge', zh: '知識' }, { en: 'Performance', zh: '表現' },
-                { en: 'Quality', zh: '品質' }, { en: 'Service', zh: '服務' }, { en: 'Strategy', zh: '策略' }
-            ]
-        };
-
-        let currentMode = 'yoga';
-        let currentRoundData = [];
-        let selectedEngCard = null;
-        let selectedZhCard = null;
-        let matchedCount = 0;
-
-        function showScreen(screenId) {
-            ['menu-screen', 'preview-screen', 'game-screen', 'win-message'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
-            document.getElementById('game-footer').classList.toggle('hidden', screenId !== 'game-screen' && screenId !== 'preview-screen');
+        :root {
+            --color-primary: #355C7D;
+            --color-highlight: #F7E36A;
+            --color-coral: #F67280;
+            --color-mint: #6CC6A6;
+            --color-error: #E65A5A;
+            --color-paper: #FFFDF8;
+            --color-card: #FFFFFF;
+            --color-border: #D9D3C8;
+            --color-secondary-text: #777777;
+            --color-divider: #ECE7DE;
         }
 
-        function selectMode(mode) {
-            currentMode = mode;
-            document.getElementById('header-title').innerText = mode === 'yoga' ? '🧘‍♀️ 瑜珈解剖單字' : '🏠 日常生活單字';
-            initRound();
+        body {
+            background-color: var(--color-paper);
+            color: #2D3748;
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-display { font-family: 'DM Serif Display', serif; }
+        .font-handwriting { font-family: 'Caveat', cursive, sans-serif; }
+        .meta-text {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-secondary-text);
+        }
+
+        .shadow-level1 { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .shadow-level2 { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+
+        .card-transition { transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .state-default {
+            background-color: var(--color-card);
+            border: 1.5px solid var(--color-border);
+            color: var(--color-primary);
+        }
+
+        .state-selected {
+            background-color: var(--color-highlight) !important;
+            border: 2px solid var(--color-primary) !important;
+            box-shadow: 0 0 10px rgba(247, 227, 106, 0.8) !important;
+        }
+
+        .state-correct {
+            background-color: var(--color-mint) !important;
+            border: 2px solid var(--color-mint) !important;
+            color: #FFFFFF !important;
+        }
+
+        .state-wrong {
+            background-color: var(--color-error) !important;
+            border: 2px solid var(--color-error) !important;
+            color: #FFFFFF !important;
+            animation: shake 250ms ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        @keyframes snapPop {
+            0% { transform: scale(0.96); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        .animate-snap { animation: snapPop 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between max-w-md mx-auto relative overflow-x-hidden border-x border-[#ECE7DE]">
+
+    <header class="h-[64px] bg-[#FFFDF8]/90 backdrop-blur-md border-b border-[#ECE7DE] px-4 sticky top-0 z-40 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <button id="btn-top-back" onclick="showView('home')" class="w-10 h-10 flex items-center justify-center text-[#355C7D] hidden active:scale-95 transition" aria-label="返回">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <h1 id="app-bar-title" class="font-display text-2xl text-[#355C7D] tracking-tight">Vocab Matcher</h1>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <span class="font-handwriting text-xl text-[#F67280] font-bold rotate-[-3deg] select-none">Daily Note</span>
+        </div>
+    </header>
+
+    <main id="main-content" class="flex-grow p-4 flex flex-col justify-start pb-20">
+
+        <!-- 視圖 1: Home 主頁 -->
+        <section id="view-home" class="space-y-5 my-auto">
+            <div class="text-center space-y-1">
+                <h2 class="font-display text-3xl text-[#355C7D]">Word Notebook</h2>
+                <p class="meta-text">請選擇今天想練習的單字模組與模式</p>
+            </div>
+
+            <!-- Segment Control -->
+            <div class="bg-[#ECE7DE] p-1 rounded-xl flex items-center justify-between text-sm font-medium">
+                <button onclick="setSegment('all')" id="seg-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-[#355C7D] shadow-sm font-semibold transition">全部題庫</button>
+                <button onclick="setSegment('fav')" id="seg-fav" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">收藏單字 <span id="fav-count-badge" class="text-[10px] bg-[#F67280] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
+                <button onclick="setSegment('wrong')" id="seg-wrong" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">錯題複習 <span id="wrong-count-badge" class="text-[10px] bg-[#E65A5A] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
+            </div>
+
+            <div id="module-cards-container" class="space-y-3.5">
+                <!-- Module Cards Dynamic Insertion -->
+            </div>
+        </section>
+
+        <!-- 視圖 2: Pre-round Preview 預習卡 (含替換單字按鈕) -->
+        <section id="view-preview" class="hidden bg-white rounded-[24px] p-5 border border-[#D9D3C8] shadow-level1 space-y-4 my-auto">
+            <div class="flex items-center justify-between border-b border-[#ECE7DE] pb-3">
+                <div>
+                    <h2 class="text-lg font-semibold text-[#355C7D]">本輪 10 個單字預習</h2>
+                    <p class="meta-text">點擊星號可收藏單字</p>
+                </div>
+                <span class="font-handwriting text-2xl text-[#F67280] font-bold">Ready?</span>
+            </div>
+
+            <div id="preview-list-container" class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1 hide-scroll"></div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="showView('home')" class="w-1/4 py-3.5 border border-[#D9D3C8] text-[#355C7D] font-semibold text-xs sm:text-sm rounded-[14px] active:scale-[0.97] transition text-center">
+                    Cancel
+                </button>
+                <button onclick="initRoundSession()" class="w-1/3 py-3.5 border border-[#355C7D] text-[#355C7D] font-semibold text-xs sm:text-sm rounded-[14px] active:scale-[0.97] transition text-center flex items-center justify-center space-x-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>替換單字</span>
+                </button>
+                <button onclick="startMatchingGame()" class="flex-1 py-3.5 bg-[#355C7D] text-white font-semibold text-xs sm:text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 text-center flex items-center justify-center space-x-1">
+                    <span>Start Matching</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- 視圖 3: 配對遊戲 View -->
+        <section id="view-game" class="hidden my-auto w-full flex flex-col justify-between h-full space-y-3">
+            <div>
+                <div class="mb-3 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span id="round-label" class="font-handwriting text-2xl text-[#355C7D] font-bold">Round 1 of 2</span>
+                        <span id="match-score-text" class="meta-text font-semibold">Matched: 0 / 5</span>
+                    </div>
+                    <div class="w-full bg-[#ECE7DE] h-2 rounded-full overflow-hidden">
+                        <div id="game-progress-bar" class="bg-[#6CC6A6] h-full w-0 transition-all duration-300 rounded-full"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div id="left-words-col" class="flex flex-col gap-2.5"></div>
+                    <div id="right-meanings-col" class="flex flex-col gap-2.5"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 視圖 4: 完成通關卡 -->
+        <section id="view-complete" class="hidden bg-white rounded-[24px] border border-[#D9D3C8] p-6 text-center my-auto shadow-level2 space-y-5 relative overflow-hidden">
+            <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none w-full h-full z-10"></canvas>
+
+            <div>
+                <span class="font-handwriting text-3xl text-[#F67280] font-bold block mb-1">Excellent Job!</span>
+                <h2 class="font-display text-3xl text-[#355C7D]">本輪挑戰完成</h2>
+                <p class="meta-text mt-1">你已成功複習單字庫</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 bg-[#FFFDF8] p-4 rounded-2xl border border-[#ECE7DE]">
+                <div class="p-2 border-r border-[#ECE7DE]">
+                    <span class="meta-text block">Accuracy</span>
+                    <span id="stat-accuracy" class="text-2xl font-bold text-[#355C7D]">100%</span>
+                </div>
+                <div class="p-2">
+                    <span class="meta-text block">Time Spent</span>
+                    <span id="stat-time" class="text-2xl font-bold text-[#355C7D]">24s</span>
+                </div>
+                <div class="p-2 border-r border-t border-[#ECE7DE]">
+                    <span class="meta-text block">XP Earned</span>
+                    <span id="stat-xp" class="text-2xl font-bold text-[#6CC6A6]">+50 XP</span>
+                </div>
+                <div class="p-2 border-t border-[#ECE7DE]">
+                    <span class="meta-text block">Mistakes</span>
+                    <span id="stat-mistakes" class="text-2xl font-bold text-[#F67280]">0</span>
+                </div>
+            </div>
+
+            <div class="space-y-2.5 z-20 relative">
+                <button onclick="initRoundSession()" class="w-full py-4 bg-[#355C7D] text-white font-semibold text-base rounded-[16px] shadow-level1 active:scale-[0.97] transition">
+                    再挑戰一次
+                </button>
+                <button onclick="showView('home')" class="w-full py-3.5 border border-[#D9D3C8] text-[#355C7D] font-semibold text-sm rounded-[16px] active:scale-[0.97] transition">
+                    回到主選單
+                </button>
+            </div>
+        </section>
+
+        <!-- 視圖 5: Review 複習圖書館 -->
+        <section id="view-review" class="hidden space-y-4 my-auto">
+            <div class="border-b border-[#ECE7DE] pb-2 flex justify-between items-end">
+                <div>
+                    <h2 class="font-display text-2xl text-[#355C7D]">Review Library</h2>
+                    <p class="meta-text">已收錄的單字總覽與點擊收藏</p>
+                </div>
+                <span id="total-words-count" class="meta-text bg-[#ECE7DE] px-2 py-0.5 rounded text-[#355C7D]">Total: 0</span>
+            </div>
+            <div id="review-list-container" class="space-y-2.5 max-h-[65vh] overflow-y-auto pr-1 hide-scroll"></div>
+        </section>
+
+        <!-- 視圖 6: Profile 個人成就與圖示設定視圖 -->
+        <section id="view-profile" class="hidden space-y-5 my-auto">
+            <div class="bg-white rounded-[24px] border border-[#D9D3C8] p-6 shadow-level1 space-y-4">
+                <div class="flex items-center space-x-4 border-b border-[#ECE7DE] pb-4">
+                    <div class="w-16 h-16 rounded-full bg-[#F7E36A] flex items-center justify-center border-2 border-[#355C7D]">
+                        <svg class="w-8 h-8 text-[#355C7D]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-xl text-[#355C7D]">Vocabulary Learner</h3>
+                        <p class="meta-text">Level 5 · Master Practitioner</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div class="flex justify-between items-center text-sm p-3 bg-[#FFFDF8] rounded-xl border border-[#ECE7DE]">
+                        <span class="text-[#777777]">Favorite Words</span>
+                        <span id="profile-fav-count" class="font-bold text-[#355C7D]">0 Words</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm p-3 bg-[#FFFDF8] rounded-xl border border-[#ECE7DE]">
+                        <span class="text-[#777777]">Wrong Words Recorded</span>
+                        <span id="profile-wrong-count" class="font-bold text-[#E65A5A]">0 Words</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 桌面 Icon 選項切換區塊 -->
+            <div class="bg-white rounded-[24px] border border-[#D9D3C8] p-5 shadow-level1 space-y-3">
+                <div>
+                    <h4 class="font-display text-lg text-[#355C7D]">App Icon 桌面圖示</h4>
+                    <p class="meta-text">可自由選擇喜歡的簡約圖示樣式：</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div onclick="selectAppIcon('A')" id="icon-card-A" class="border-2 rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2">
+                        <img id="img-preview-A" class="w-20 h-20 rounded-2xl shadow-md border border-[#D9D3C8]" alt="Icon A" />
+                        <span class="font-semibold text-xs text-[#355C7D]">選項 A: Monogram</span>
+                        <span class="text-[10px] text-[#777777]">深藍底色 + 經典 VM 字樣</span>
+                    </div>
+
+                    <div onclick="selectAppIcon('B')" id="icon-card-B" class="border-2 rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2">
+                        <img id="img-preview-B" class="w-20 h-20 rounded-2xl shadow-md border border-[#ECE7DE]" alt="Icon B" />
+                        <span class="font-semibold text-xs text-[#355C7D]">選項 B: Overlapping Cards</span>
+                        <span class="text-[10px] text-[#777777]">紙感底色 + 手繪層疊卡</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="h-[64px] bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#ECE7DE] fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 flex items-center justify-around px-2">
+        <button onclick="switchBottomTab('home')" id="nav-home" class="flex flex-col items-center justify-center w-16 text-[#355C7D] transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            <span class="text-[12px] font-medium mt-0.5">Home</span>
+        </button>
+        <button onclick="switchBottomTab('match')" id="nav-match" class="flex flex-col items-center justify-center w-16 text-[#777777] hover:text-[#355C7D] transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="15" rx="2" transform="rotate(-6 3 5)"/><rect x="8" y="4" width="13" height="15" rx="2"/><path d="M11 9h5M11 13h3"/></svg>
+            <span class="text-[12px] font-medium mt-0.5">Match</span>
+        </button>
+        <button onclick="switchBottomTab('review')" id="nav-review" class="flex flex-col items-center justify-center w-16 text-[#777777] hover:text-[#355C7D] transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span class="text-[12px] font-medium mt-0.5">Review</span>
+        </button>
+        <button onclick="switchBottomTab('profile')" id="nav-profile" class="flex flex-col items-center justify-center w-16 text-[#777777] hover:text-[#355C7D] transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-[12px] font-medium mt-0.5">Profile</span>
+        </button>
+    </nav>
+
+    <script>
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(140, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+                }
+            } catch(e) {}
+        }
+
+        function triggerHaptic(type) {
+            if ('vibrate' in navigator) {
+                if (type === 'light') navigator.vibrate(10);
+                if (type === 'medium') navigator.vibrate([20, 30, 20]);
+            }
+        }
+
+        // 1. 瑜珈解剖與口令 150 精選單字庫
+        const yogaData = [
+            { word: 'Spine', ipa: '/spaɪn/', pos: 'n.', meaning: '脊椎', example: 'Lengthen your spine as you inhale.' },
+            { word: 'Vertebrae', ipa: '/ˈvɜːrtɪbriː/', pos: 'n.', meaning: '脊椎骨', example: 'Stack your vertebrae one by one.' },
+            { word: 'Cervical Spine', ipa: '/ˈsɜːrvɪkəl/', pos: 'n.', meaning: '頸椎', example: 'Keep your cervical spine neutral.' },
+            { word: 'Thoracic Spine', ipa: '/θəˈræsɪk/', pos: 'n.', meaning: '胸椎', example: 'Find extension through thoracic spine.' },
+            { word: 'Lumbar Spine', ipa: '/ˈlʌmbər/', pos: 'n.', meaning: '腰椎', example: 'Protect your lumbar spine in backbends.' },
+            { word: 'Sacrum', ipa: '/ˈseɪkrəm/', pos: 'n.', meaning: '薦骨', example: 'Keep your sacrum heavy on the mat.' },
+            { word: 'Coccyx', ipa: '/ˈkɑːksɪks/', pos: 'n.', meaning: '尾骨', example: 'Lengthen coccyx down toward heels.' },
+            { word: 'Pelvis', ipa: '/ˈpɛlvɪs/', pos: 'n.', meaning: '骨盆', example: 'Square your pelvis to the front.' },
+            { word: 'Sit Bones', ipa: '/sɪt boʊnz/', pos: 'n.', meaning: '坐骨', example: 'Root down firmly through sit bones.' },
+            { word: 'Ribcage', ipa: '/ˈrɪbkeɪdʒ/', pos: 'n.', meaning: '肋骨', example: 'Knit your ribcage gently in.' },
+            { word: 'Sternum', ipa: '/ˈstɜːrnəm/', pos: 'n.', meaning: '胸骨', example: 'Lift your sternum toward ceiling.' },
+            { word: 'Clavicle', ipa: '/ˈklævɪkəl/', pos: 'n.', meaning: '鎖骨', example: 'Broaden across your clavicles.' },
+            { word: 'Scapula', ipa: '/ˈskæpjələ/', pos: 'n.', meaning: '肩胛骨', example: 'Draw scapulae down your back.' },
+            { word: 'Humerus', ipa: '/ˈhjuːmərəs/', pos: 'n.', meaning: '肱骨', example: 'Rotate humerus head externally.' },
+            { word: 'Radius', ipa: '/ˈreɪdiəs/', pos: 'n.', meaning: '橈骨', example: 'Press through the radial thumb side.' },
+            { word: 'Ulna', ipa: '/ˈʌlnə/', pos: 'n.', meaning: '尺骨', example: 'Balance weight along the ulna.' },
+            { word: 'Femur', ipa: '/ˈfiːmər/', pos: 'n.', meaning: '股骨', example: 'Plug femur head into hip socket.' },
+            { word: 'Tibia', ipa: '/ˈtɪbiə/', pos: 'n.', meaning: '脛骨', example: 'Keep tibia perpendicular to floor.' },
+            { word: 'Fibula', ipa: '/ˈfɪbjələ/', pos: 'n.', meaning: '腓骨', example: 'Engage muscles along outer fibula.' },
+            { word: 'Patella', ipa: '/pəˈtɛlə/', pos: 'n.', meaning: '膝蓋骨', example: 'Lift patella by contracting quads.' },
+            { word: 'Ankle Joint', ipa: '/ˈæŋkəl/', pos: 'n.', meaning: '腳踝關節', example: 'Circle your ankle joint gently.' },
+            { word: 'Hip Flexors', ipa: '/hɪp ˈflɛksərz/', pos: 'n.', meaning: '髖屈肌', example: 'Open hip flexors in low lunge.' },
+            { word: 'Iliopsoas', ipa: '/ˌɪlioʊˈsoʊəs/', pos: 'n.', meaning: '腰髂肌', example: 'Release deep tension in iliopsoas.' },
+            { word: 'Psoas Major', ipa: '/ˈsoʊəs/', pos: 'n.', meaning: '腰大肌', example: 'Psoas connects spine to femur.' },
+            { word: 'Quadriceps', ipa: '/ˈkwɑːdrɪsɛps/', pos: 'n.', meaning: '股四頭肌', example: 'Firm quadriceps to protect knees.' },
+            { word: 'Hamstrings', ipa: '/ˈhæmstrɪŋz/', pos: 'n.', meaning: '膕繩肌', example: 'Stretch hamstrings in forward fold.' },
+            { word: 'Gluteus Maximus', ipa: '/ˈɡluːtiəs/', pos: 'n.', meaning: '臀大肌', example: 'Squeeze glutes gently in bridge.' },
+            { word: 'Gluteus Medius', ipa: '/ˈmiːdiəs/', pos: 'n.', meaning: '臀中肌', example: 'Stabilize standing leg with glute medius.' },
+            { word: 'Adductors', ipa: '/əˈdʌktərz/', pos: 'n.', meaning: '內收肌群', example: 'Hug adductors tightly to midline.' },
+            { word: 'Abductors', ipa: '/æbˈdʌktərz/', pos: 'n.', meaning: '外展肌群', example: 'Engage outer hip abductors.' },
+            { word: 'IT Band', ipa: '/aɪ tiː bænd/', pos: 'n.', meaning: '髂脛束', example: 'Lengthen outer thigh along IT band.' },
+            { word: 'Gastrocnemius', ipa: '/ˌɡæstrɒkˈniːmiəs/', pos: 'n.', meaning: '腓腸肌', example: 'Press heel down to stretch calf.' },
+            { word: 'Soleus', ipa: '/ˈsoʊliəs/', pos: 'n.', meaning: '比目魚肌', example: 'Bend knees slightly to target soleus.' },
+            { word: 'Plantar Fascia', ipa: '/ˈplæntər/', pos: 'n.', meaning: '足底筋膜', example: 'Stretch plantar fascia in toe pose.' },
+            { word: 'Achilles Tendon', ipa: '/əˈkɪliːz/', pos: 'n.', meaning: '跟腱', example: 'Maintain length in Achilles tendon.' },
+            { word: 'Diaphragm', ipa: '/ˈdaɪəfræm/', pos: 'n.', meaning: '橫膈膜', example: 'Diaphragm descends on inhale.' },
+            { word: 'Intercostal', ipa: '/ˌɪntərˈkɑːstəl/', pos: 'n.', meaning: '肋間肌', example: 'Expand intercostal space.' },
+            { word: 'Rectus Abdominis', ipa: '/ˈrɛktəs/', pos: 'n.', meaning: '腹直肌', example: 'Engage rectus abdominis in plank.' },
+            { word: 'Transverse Abdominis', ipa: '/trænzˈvɜːrs/', pos: 'n.', meaning: '腹橫肌', example: 'Pull navel in for transverse abs.' },
+            { word: 'Obliques', ipa: '/əˈbliːks/', pos: 'n.', meaning: '腹斜肌', example: 'Twist deeply using obliques.' },
+            { word: 'Pelvic Floor', ipa: '/ˈpɛlvɪk flɔːr/', pos: 'n.', meaning: '骨盆底肌', example: 'Lift pelvic floor in Mula Bandha.' },
+            { word: 'Trapezius', ipa: '/trəˈpiːziəs/', pos: 'n.', meaning: '斜方肌', example: 'Relax upper trapezius away from ears.' },
+            { word: 'Rhomboids', ipa: '/ˈrɑːmbɔɪdz/', pos: 'n.', meaning: '菱形肌', example: 'Squeeze rhomboids to retract scapulae.' },
+            { word: 'Latissimus Dorsi', ipa: '/ləˈtɪsɪməs/', pos: 'n.', meaning: '背闊肌', example: 'Engage lats as you press hands down.' },
+            { word: 'Serratus Anterior', ipa: '/səˈreɪtəs/', pos: 'n.', meaning: '前鋸肌', example: 'Fire serratus anterior in arm balance.' },
+            { word: 'Erector Spinae', ipa: '/ɪˈrɛktər/', pos: 'n.', meaning: '豎脊肌', example: 'Erector spinae supports spinal posture.' },
+            { word: 'Quadratus Lumborum', ipa: '/kwɑːˈdreɪtəs/', pos: 'n.', meaning: '腰方肌', example: 'Lengthen QL muscle in side bend.' },
+            { word: 'Deltoid', ipa: '/ˈdɛltɔɪd/', pos: 'n.', meaning: '三角肌', example: 'Build endurance in deltoid muscles.' },
+            { word: 'Pectoralis Major', ipa: '/ˌpɛktəˈreɪlɪs/', pos: 'n.', meaning: '胸大肌', example: 'Open pectoralis major across chest.' },
+            { word: 'Piriformis', ipa: '/ˌpɪrɪˈfɔːrmɪs/', pos: 'n.', meaning: '梨狀肌', example: 'Stretch piriformis in pigeon pose.' },
+            { word: 'Rotator Cuff', ipa: '/roʊteɪtər kʌf/', pos: 'n.', meaning: '肩袖肌群', example: 'Stabilize shoulder with rotator cuff.' },
+            { word: 'Ligament', ipa: '/ˈlɪɡəmənt/', pos: 'n.', meaning: '韌帶', example: 'Protect joint ligaments from strain.' },
+            { word: 'Tendon', ipa: '/ˈtɛndən/', pos: 'n.', meaning: '肌腱', example: 'Tendons connect muscle to bone.' },
+            { word: 'Fascia', ipa: '/ˈfæʃiə/', pos: 'n.', meaning: '筋膜', example: 'Yin yoga targets deep connective fascia.' },
+            { word: 'Synovial Fluid', ipa: '/sɪˈnoʊviəl/', pos: 'n.', meaning: '滑液', example: 'Warmup hydrates joints with synovial fluid.' },
+            { word: 'Cartilage', ipa: '/ˈkɑːrtɪlɪdʒ/', pos: 'n.', meaning: '軟骨', example: 'Cartilage cushions joint surfaces.' },
+            { word: 'Intervertebral Disc', ipa: '/dɪsk/', pos: 'n.', meaning: '椎間盤', example: 'Decompress intervertebral discs.' },
+            { word: 'Anterior', ipa: '/ænˈtɪriər/', pos: 'adj.', meaning: '前側的', example: 'Lengthen the anterior body.' },
+            { word: 'Posterior', ipa: '/pɑːˈstɪriər/', pos: 'adj.', meaning: '後側的', example: 'Open the entire posterior chain.' },
+            { word: 'Lateral', ipa: '/ˈlætərəl/', pos: 'adj.', meaning: '外側/側向的', example: 'Find lateral flexion in spine.' },
+            { word: 'Medial', ipa: '/ˈmiːdiəl/', pos: 'adj.', meaning: '內側的', example: 'Rotate inner thighs medially.' },
+            { word: 'Proximal', ipa: '/ˈprɑːksɪməl/', pos: 'adj.', meaning: '近端的', example: 'Draw energy to proximal joint.' },
+            { word: 'Distal', ipa: '/ˈdɪstəl/', pos: 'adj.', meaning: '遠端的', example: 'Reach out to distal fingertips.' },
+            { word: 'Superior', ipa: '/suːˈpɪriər/', pos: 'adj.', meaning: '上方的', example: 'Lift superior part of sternum.' },
+            { word: 'Inferior', ipa: '/ɪnˈfɪriər/', pos: 'adj.', meaning: '下方的', example: 'Anchor inferior angle of scapula.' },
+            { word: 'Prone', ipa: '/proʊn/', pos: 'adj.', meaning: '俯臥的', example: 'Lie prone on mat for cobra.' },
+            { word: 'Supine', ipa: '/ˈsuːpaɪn/', pos: 'adj.', meaning: '仰臥的', example: 'Recline supine for savasana.' },
+            { word: 'Flexion', ipa: '/ˈflɛkʃən/', pos: 'n.', meaning: '屈曲', example: 'Hips go into flexion in fold.' },
+            { word: 'Extension', ipa: '/ɪkˈstɛnʃən/', pos: 'n.', meaning: '伸展', example: 'Spinal extension creates backbend.' },
+            { word: 'Abduction', ipa: '/æbˈdʌkʃən/', pos: 'n.', meaning: '外展', example: 'Leg abduction in warrior two.' },
+            { word: 'Adduction', ipa: '/əˈdʌkʃən/', pos: 'n.', meaning: '內收', example: 'Squeeze thighs for adduction.' },
+            { word: 'Protraction', ipa: '/proʊˈtrækʃən/', pos: 'n.', meaning: '前引/前凸', example: 'Protract scapulae in plank.' },
+            { word: 'Retraction', ipa: '/rɪˈtrækʃən/', pos: 'n.', meaning: '後縮/後收', example: 'Retract shoulder blades in cobra.' },
+            { word: 'Elevation', ipa: '/ˌɛlɪˈveɪʃən/', pos: 'n.', meaning: '上提', example: 'Avoid excessive shoulder elevation.' },
+            { word: 'Depression', ipa: '/dɪˈprɛʃən/', pos: 'n.', meaning: '下壓/沉肩', example: 'Find depression of shoulders.' },
+            { word: 'Pronation', ipa: '/proʊˈneɪʃən/', pos: 'n.', meaning: '旋前/趴掌', example: 'Press index knuckle in pronation.' },
+            { word: 'Supination', ipa: '/ˌsuːpɪˈneɪʃən/', pos: 'n.', meaning: '旋後/仰掌', example: 'Forearm supination turns palm up.' },
+            { word: 'Internal Rotation', ipa: '/roʊˈteɪʃən/', pos: 'n.', meaning: '內旋', example: 'Spiral back thigh in internal rotation.' },
+            { word: 'External Rotation', ipa: '/roʊˈteɪʃən/', pos: 'n.', meaning: '外旋', example: 'Find external rotation in front hip.' },
+            { word: 'Circumduction', ipa: '/ˌsɜːrkəmˈdʌkʃən/', pos: 'n.', meaning: '環轉運動', example: 'Circle arm in full circumduction.' },
+            { word: 'Isometric', ipa: '/ˌaɪsəˈmɛtrɪk/', pos: 'adj.', meaning: '等長收縮的', example: 'Hold plank for isometric core strength.' },
+            { word: 'Isometric Contraction', ipa: '/kənˈtrækʃən/', pos: 'n.', meaning: '等長收縮', example: 'Maintain isometric contraction in legs.' },
+            { word: 'Isotonic', ipa: '/ˌaɪsəˈtɑːnɪk/', pos: 'adj.', meaning: '等張收縮的', example: 'Moving vinyasa uses isotonic work.' },
+            { word: 'Concentric', ipa: '/kənˈsɛntrɪk/', pos: 'adj.', meaning: '向心收縮的', example: 'Quadriceps contract concentrically.' },
+            { word: 'Eccentric', ipa: '/ɪkˈsɛntrɪk/', pos: 'adj.', meaning: '離心收縮的', example: 'Lower slowly for eccentric control.' },
+            { word: 'Reciprocal Inhibition', ipa: '/ɪn hɪˈbɪʃən/', pos: 'n.', meaning: '交互抑制', example: 'Quads contract to relax hamstrings.' },
+            { word: 'Proprioception', ipa: '/ˌproʊprioʊˈsɛpʃən/', pos: 'n.', meaning: '本體感覺', example: 'Balancing builds body proprioception.' },
+            { word: 'Interoception', ipa: '/ˌɪntərəˈsɛpʃən/', pos: 'n.', meaning: '內受覺', example: 'Tune into deep interoception.' },
+            { word: 'Kinetic Chain', ipa: '/kɪˈnɛtɪk/', pos: 'n.', meaning: '動力鏈', example: 'Energy transfers up kinetic chain.' },
+            { word: 'Plumb Line', ipa: '/plʌm laɪn/', pos: 'n.', meaning: '鉛垂線/對齊線', example: 'Check ear-to-ankle plumb line.' },
+            { word: 'Neutral Spine', ipa: '/ˈnuːtrəl/', pos: 'n.', meaning: '中立脊椎', example: 'Maintain natural curves in neutral spine.' },
+            { word: 'Engage', ipa: '/ɪnˈɡeɪdʒ/', pos: 'v.', meaning: '啟動肌肉', example: 'Engage your core before moving.' },
+            { word: 'Release', ipa: '/rɪˈliːs/', pos: 'v.', meaning: '放鬆/釋放', example: 'Release any jaw tension.' },
+            { word: 'Lengthen', ipa: '/ˈlɛŋθən/', pos: 'v.', meaning: '延伸拉長', example: 'Lengthen spine with each inhale.' },
+            { word: 'Ground Down', ipa: '/ɡraʊnd/', pos: 'v.', meaning: '向下扎根', example: 'Ground down into four corners of feet.' },
+            { word: 'Root Down', ipa: '/ruːt/', pos: 'v.', meaning: '深根穩固', example: 'Root down to rise tall.' },
+            { word: 'Tuck', ipa: '/tʌk/', pos: 'v.', meaning: '內收/微捲', example: 'Tuck tailbone slightly under.' },
+            { word: 'Broaden', ipa: '/ˈbrɔːdən/', pos: 'v.', meaning: '展寬', example: 'Broaden collarbones open wide.' },
+            { word: 'Soften', ipa: '/ˈsɔːfən/', pos: 'v.', meaning: '放柔/軟化', example: 'Soften ribs toward navel.' },
+            { word: 'Stack', ipa: '/stæk/', pos: 'v.', meaning: '垂直堆疊', example: 'Stack shoulders over wrists.' },
+            { word: 'Hinge', ipa: '/hɪndʒ/', pos: 'v.', meaning: '髖關節摺疊', example: 'Hinge forward from hips.' },
+            { word: 'Spiral', ipa: '/ˈspaɪrəl/', pos: 'v.', meaning: '螺旋旋轉', example: 'Spiral inner thighs backward.' },
+            { word: 'Hug to Midline', ipa: '/hʌɡ/', pos: 'v.', meaning: '夾向中線', example: 'Hug inner ankles to midline.' },
+            { word: 'Micro-bend', ipa: '/ˈmaɪkroʊ/', pos: 'v.', meaning: '微彎不鎖死', example: 'Keep a micro-bend in elbows.' },
+            { word: 'Knit Ribs', ipa: '/nɪt/', pos: 'v.', meaning: '收攏肋骨', example: 'Knit front ribs gently together.' },
+            { word: 'Activate', ipa: '/ˈæktɪveɪt/', pos: 'v.', meaning: '激活/發力', example: 'Activate feet by fanning toes.' },
+            { word: 'Inhale', ipa: '/ɪnˈheɪl/', pos: 'v.', meaning: '吸氣', example: 'Inhale to fill chest with air.' },
+            { word: 'Exhale', ipa: '/ɛksˈheɪl/', pos: 'v.', meaning: '吐氣', example: 'Exhale fully to empty lungs.' },
+            { word: 'Surrender', ipa: '/səˈrɛndər/', pos: 'v.', meaning: '臣服/放鬆', example: 'Surrender weight into floor.' },
+            { word: 'Anchor', ipa: '/ˈæŋkər/', pos: 'v.', meaning: '錨定/固定', example: 'Anchor back heel to floor.' },
+            { word: 'Stabilize', ipa: '/ˈsteɪbəlaɪz/', pos: 'v.', meaning: '穩定', example: 'Stabilize hips before lifting leg.' },
+            { word: 'Mobilize', ipa: '/ˈmoʊbəlaɪz/', pos: 'v.', meaning: '活動/動員', example: 'Mobilize thoracic spine twists.' },
+            { word: 'Decompress', ipa: '/ˌdiːkəmˈprɛs/', pos: 'v.', meaning: '減壓減負', example: 'Decompress lumbar vertebrae.' },
+            { word: 'Integrate', ipa: '/ˈɪntɪɡreɪt/', pos: 'v.', meaning: '整合連結', example: 'Integrate arm bone into socket.' },
+            { word: 'Center', ipa: '/ˈsɛntər/', pos: 'v.', meaning: '找回中心', example: 'Center your mind on breath.' },
+            { word: 'Elongate', ipa: '/ɪˈlɔːŋɡeɪt/', pos: 'v.', meaning: '拉長/延伸', example: 'Elongate side waist line.' },
+            { word: 'Unwind', ipa: '/ʌnˈwaɪnd/', pos: 'v.', meaning: '解開/舒緩', example: 'Unwind spine out of twist.' },
+            { word: 'Press', ipa: '/prɛs/', pos: 'v.', meaning: '往下按壓', example: 'Press mat away with hands.' },
+            { word: 'Squeeze', ipa: '/skwiːz/', pos: 'v.', meaning: '夾緊/收縮', example: 'Squeeze blocks between thighs.' },
+            { word: 'Pranayama', ipa: '/prɑːnɑːˈjɑːmə/', pos: 'n.', meaning: '調息/呼吸法', example: 'Begin session with Pranayama.' },
+            { word: 'Ujjayi', ipa: '/uːˈdʒaɪ/', pos: 'n.', meaning: '勝利呼吸法', example: 'Maintain Ujjayi breath ocean sound.' },
+            { word: 'Drishti', ipa: '/ˈdrɪʃti/', pos: 'n.', meaning: '凝視點', example: 'Fix your Drishti on stationary point.' },
+            { word: 'Vinyasa', ipa: '/vɪnˈjɑːsə/', pos: 'n.', meaning: '流瑜珈/連貫體位', example: 'Flow through a smooth Vinyasa.' },
+            { word: 'Savasana', ipa: '/ʃɑːˈvɑːsənə/', pos: 'n.', meaning: '大休息/大屍式', example: 'Rest deeply in Savasana.' },
+            { word: 'Bandha', ipa: '/ˈbʌndə/', pos: 'n.', meaning: '能量鎖/收束法', example: 'Engage internal Bandhas for stability.' },
+            { word: 'Mula Bandha', ipa: '/ˈmuːlə/', pos: 'n.', meaning: '根鎖/會陰收束', example: 'Lift Mula Bandha at pelvic base.' },
+            { word: 'Uddiyana Bandha', ipa: '/uːdiːˈjɑːnə/', pos: 'n.', meaning: '飛起鎖/腹收束', example: 'Draw belly back for Uddiyana.' },
+            { word: 'Jalandhara Bandha', ipa: '/dʒɑːlənˈdɑːrə/', pos: 'n.', meaning: '喉鎖/頸收束', example: 'Tuck chin for Jalandhara Bandha.' },
+            { word: 'Asana', ipa: '/ˈɑːsənə/', pos: 'n.', meaning: '瑜珈體位', example: 'Find comfort in each Asana.' },
+            { word: 'Chakra', ipa: '/ˈtʃʌkrə/', pos: 'n.', meaning: '脈輪/能量中心', example: 'Balance seven primary Chakras.' },
+            { word: 'Tadasana', ipa: '/tɑːˈdɑːsənə/', pos: 'n.', meaning: '山式', example: 'Stand upright in Tadasana.' },
+            { word: 'Chaturanga', ipa: '/tʃætʊˈrʌŋɡə/', pos: 'n.', meaning: '四柱臥撐', example: 'Lower down to Chaturanga.' },
+            { word: 'Bhujangasana', ipa: '/buːdʒæŋˈɡɑːsənə/', pos: 'n.', meaning: '眼鏡蛇式', example: 'Inhale into Bhujangasana cobra.' },
+            { word: 'Adho Mukha Svanasana', ipa: '/ˈɑːdoʊ/', pos: 'n.', meaning: '下犬式', example: 'Lift hips to Downward Dog.' },
+            { word: 'Trikonasana', ipa: '/trɪkoʊˈnɑːsənə/', pos: 'n.', meaning: '三角式', example: 'Reach extended side in Trikonasana.' },
+            { word: 'Virabhadrasana', ipa: '/vɪrəbɑːˈdrɑːsənə/', pos: 'n.', meaning: '戰士式', example: 'Step wide into Virabhadrasana.' },
+            { word: 'Balasana', ipa: '/bɑːˈlɑːsənə/', pos: 'n.', meaning: '嬰兒式', example: 'Rest forehead down in Balasana.' },
+            { word: 'Uttanasana', ipa: '/uːtɑːˈnɑːsənə/', pos: 'n.', meaning: '站立前彎', example: 'Fold hips deep in Uttanasana.' },
+            { word: 'Alignment', ipa: '/əˈlaɪnmənt/', pos: 'n.', meaning: '正位/對齊', example: 'Check joint alignment in pose.' },
+            { word: 'Sequencing', ipa: '/ˈsiːkwənsɪŋ/', pos: 'n.', meaning: '編排/動作排序', example: 'Logical sequencing prepares body.' },
+            { word: 'Adjustment', ipa: '/əˈdʒʌstmənt/', pos: 'n.', meaning: '手法微調/輔助', example: 'Receive subtle manual adjustment.' },
+            { word: 'Counterpose', ipa: '/ˈkaʊntərpoʊz/', pos: 'n.', meaning: '反向動作/補償', example: 'Child pose is backbend counterpose.' },
+            { word: 'Restorative', ipa: '/rɪˈstɔːrətɪv/', pos: 'adj.', meaning: '修復放鬆的', example: 'Restorative yoga uses props.' },
+            { word: 'Inversion', ipa: '/ɪnˈvɜːrʒən/', pos: 'n.', meaning: '倒立/倒置體位', example: 'Heart is higher than head in inversion.' },
+            { word: 'Hyper-mobility', ipa: '/ˈhaɪpər/', pos: 'n.', meaning: '關節過展/超伸', example: 'Protect hyper-mobility with muscle engagement.' },
+            { word: 'Prop', ipa: '/prɑːp/', pos: 'n.', meaning: '瑜珈輔具', example: 'Use block prop under hand.' },
+            { word: 'Strap', ipa: '/stræp/', pos: 'n.', meaning: '瑜珈繩', example: 'Loop strap around foot sole.' },
+            { word: 'Bolster', ipa: '/ˈboʊlstər/', pos: 'n.', meaning: '抱枕/長枕', example: 'Support back with soft bolster.' },
+            { word: 'Mindfulness', ipa: '/ˈmaɪndfʊlnəs/', pos: 'n.', meaning: '正念覺察', example: 'Practice mindfulness with movement.' },
+            { word: 'Intention', ipa: '/ɪnˈtɛnʃən/', pos: 'n.', meaning: '意圖/設定發願', example: 'Set intention for practice.' }
+        ];
+
+        // 2. 日常生活實用 150 精選單字庫
+        const dailyData = [
+            { word: 'Remote control', ipa: '/rɪˈmoʊt/', pos: 'n.', meaning: '遙控器', example: 'Pass me the remote control, please.' },
+            { word: 'Seasoning', ipa: '/ˈsiːzənɪŋ/', pos: 'n.', meaning: '調味料', example: 'Add some seasoning to the soup.' },
+            { word: 'Refrigerator', ipa: '/rɪˈfrɪdʒəreɪtər/', pos: 'n.', meaning: '冰箱', example: 'Put milk in refrigerator.' },
+            { word: 'Microwave', ipa: '/ˈmaɪkrəweɪv/', pos: 'n.', meaning: '微波爐', example: 'Heat food in microwave.' },
+            { word: 'Battery', ipa: '/ˈbætəri/', pos: 'n.', meaning: '電池', example: 'The clock needs a new battery.' },
+            { word: 'Receipt', ipa: '/rɪˈsiːt/', pos: 'n.', meaning: '收據', example: 'Keep receipt for returns.' },
+            { word: 'Sunscreen', ipa: '/ˈsʌnskriːn/', pos: 'n.', meaning: '防曬乳', example: 'Apply sunscreen before going out.' },
+            { word: 'Mosquito repellent', ipa: '/rɪˈpɛlənt/', pos: 'n.', meaning: '防蚊液', example: 'Spray repellent to avoid bites.' },
+            { word: 'Negotiate', ipa: '/nɪˈɡoʊʃieɪt/', pos: 'v.', meaning: '協商/議價', example: 'We can negotiate the price.' },
+            { word: 'Confident', ipa: '/ˈkɑːnfɪdənt/', pos: 'adj.', meaning: '自信的', example: 'She is confident in her work.' },
+            { word: 'Flexible', ipa: '/ˈflɛksəbəl/', pos: 'adj.', meaning: '有彈性的', example: 'My schedule is quite flexible.' },
+            { word: 'Blender', ipa: '/ˈblɛndər/', pos: 'n.', meaning: '果汁機', example: 'Blend fruits in blender.' },
+            { word: 'Toaster', ipa: '/ˈtoʊstər/', pos: 'n.', meaning: '烤麵包機', example: 'Put bread into toaster.' },
+            { word: 'Dishwasher', ipa: '/ˈdɪʃˌwɑːʃər/', pos: 'n.', meaning: '洗碗機', example: 'Load dirty plates into dishwasher.' },
+            { word: 'Thermos', ipa: '/ˈθɜːrməs/', pos: 'n.', meaning: '保溫瓶', example: 'Keep coffee hot in thermos.' },
+            { word: 'Charger', ipa: '/ˈtʃɑːrdʒər/', pos: 'n.', meaning: '充電器', example: 'I forgot my phone charger.' },
+            { word: 'Power bank', ipa: '/ˈpaʊər bæŋk/', pos: 'n.', meaning: '行動電源', example: 'Charge phone with power bank.' },
+            { word: 'Reservation', ipa: '/ˌrɛzərˈveɪʃən/', pos: 'n.', meaning: '預訂/訂位', example: 'I made a dinner reservation.' },
+            { word: 'Destination', ipa: '/ˌdɛstɪˈneɪʃən/', pos: 'n.', meaning: '目的地', example: 'Arrived at our destination.' },
+            { word: 'Itinerary', ipa: '/aɪˈtɪnərɛri/', pos: 'n.', meaning: '旅遊行程', example: 'Check travel itinerary.' },
+            { word: 'Air conditioner', ipa: '/ˈkənˈdɪʃənər/', pos: 'n.', meaning: '冷氣機', example: 'Turn on the air conditioner.' },
+            { word: 'Earphones', ipa: '/ˈɪrfoʊnz/', pos: 'n.', meaning: '耳機', example: 'Plug in your earphones.' },
+            { word: 'Tissue', ipa: '/ˈtɪʃuː/', pos: 'n.', meaning: '面紙/衛生紙', example: 'Pass me a box of tissue.' },
+            { word: 'Scissors', ipa: '/ˈsɪzərz/', pos: 'n.', meaning: '剪刀', example: 'Use scissors to cut paper.' },
+            { word: 'Scooter', ipa: '/ˈskuːtər/', pos: 'n.', meaning: '機車/速克達', example: 'He rides a scooter to work.' },
+            { word: 'Helmet', ipa: '/ˈhɛlmɪt/', pos: 'n.', meaning: '安全帽', example: 'Wear a helmet for safety.' },
+            { word: 'Currency', ipa: '/ˈkɜːrənsi/', pos: 'n.', meaning: '貨幣/外幣', example: 'Exchange currency at airport.' },
+            { word: 'Boarding pass', ipa: '/ˈbɔːrdɪŋ pæs/', pos: 'n.', meaning: '登機證', example: 'Show boarding pass at gate.' },
+            { word: 'Luggage', ipa: '/ˈlʌɡɪdʒ/', pos: 'n.', meaning: '行李', example: 'Claim your luggage at carousel.' },
+            { word: 'Souvenir', ipa: '/ˌsuːvəˈnɪr/', pos: 'n.', meaning: '紀念品', example: 'Buy souvenirs for friends.' },
+            { word: 'Pharmacy', ipa: '/ˈfɑːrməsi/', pos: 'n.', meaning: '藥局', example: 'Get medicine at local pharmacy.' },
+            { word: 'Supermarket', ipa: '/ˈsuːpərmɑːrkɪt/', pos: 'n.', meaning: '超級市場', example: 'Buy groceries at supermarket.' },
+            { word: 'Appointment', ipa: '/əˈpɔɪntmənt/', pos: 'n.', meaning: '預約/約會', example: 'I have a doctor appointment.' },
+            { word: 'Experience', ipa: '/ɪkˈspɪriəns/', pos: 'n.', meaning: '經驗/體驗', example: 'Travel gives rich experience.' },
+            { word: 'Discount', ipa: '/ˈdɪskaʊnt/', pos: 'n.', meaning: '折扣', example: 'Ask for a student discount.' },
+            { word: 'Schedule', ipa: '/ˈskɛdʒuːl/', pos: 'n.', meaning: '時間表/日程', example: 'Check today’s busy schedule.' },
+            { word: 'Deadline', ipa: '/ˈdɛdlaɪn/', pos: 'n.', meaning: '截止日期', example: 'Submit work before deadline.' },
+            { word: 'Password', ipa: '/ˈpæswɜːrd/', pos: 'n.', meaning: '密碼', example: 'Enter Wi-Fi password.' },
+            { word: 'Attachment', ipa: '/əˈtætʃmənt/', pos: 'n.', meaning: '郵件附件', example: 'Check the email attachment.' },
+            { word: 'Conversation', ipa: '/ˌkɑːnvərˈseɪʃən/', pos: 'n.', meaning: '對話', example: 'Start an easy conversation.' },
+            { word: 'Difference', ipa: '/ˈdɪfərəns/', pos: 'n.', meaning: '差異/差別', example: 'Spot the difference between them.' },
+            { word: 'Adventure', ipa: '/ædˈvɛntʃər/', pos: 'n.', meaning: '冒險/探險', example: 'Begin a new life adventure.' },
+            { word: 'Background', ipa: '/ˈbækɡraʊnd/', pos: 'n.', meaning: '背景', example: 'Beautiful mountain background.' },
+            { word: 'Budget', ipa: '/ˈbʌdʒɪt/', pos: 'n.', meaning: '預算', example: 'Plan travel within budget.' },
+            { word: 'Description', ipa: '/dɪˈskrɪpʃən/', pos: 'n.', meaning: '說明描述', example: 'Read product description.' },
+            { word: 'Environment', ipa: '/ɪnˈvaɪrənmənt/', pos: 'n.', meaning: '環境', example: 'Protect natural environment.' },
+            { word: 'Equipment', ipa: '/ɪˈkwɪpmənt/', pos: 'n.', meaning: '設備/器材', example: 'Check sports equipment.' },
+            { word: 'Instruction', ipa: '/ɪnˈstrʌkʃən/', pos: 'n.', meaning: '指示/說明書', example: 'Follow manual instruction.' },
+            { word: 'Knowledge', ipa: '/ˈnɑːlɪdʒ/', pos: 'n.', meaning: '知識', example: 'Gain practical knowledge.' },
+            { word: 'Performance', ipa: '/pərˈfɔːrməns/', pos: 'n.', meaning: '表演/效能', example: 'Enjoy live music performance.' },
+            { word: 'Quality', ipa: '/ˈkwɑːləti/', pos: 'n.', meaning: '品質/質量', example: 'High quality materials.' },
+            { word: 'Service', ipa: '/ˈsɜːrvɪs/', pos: 'n.', meaning: '服務', example: 'Great customer service.' },
+            { word: 'Strategy', ipa: '/ˈstrætədʒi/', pos: 'n.', meaning: '策略', example: 'Develop business strategy.' },
+            { word: 'Balcony', ipa: '/ˈbælkəni/', pos: 'n.', meaning: '陽台', example: 'Sit out on the balcony.' },
+            { word: 'Elevator', ipa: '/ˈɛlɪveɪtər/', pos: 'n.', meaning: '電梯', example: 'Take elevator to fifth floor.' },
+            { word: 'Escalator', ipa: '/ˈɛskəleɪtər/', pos: 'n.', meaning: '手扶梯', example: 'Stand on escalator right side.' },
+            { word: 'Pedestrian', ipa: '/pəˈdɛstriən/', pos: 'n.', meaning: '行人', example: 'Pedestrian crosswalk signal.' },
+            { word: 'Intersection', ipa: '/ˌɪntərˈsɛkʃən/', pos: 'n.', meaning: '十字路口', example: 'Turn left at intersection.' },
+            { word: 'Neighborhood', ipa: '/ˈneɪbərˌhʊd/', pos: 'n.', meaning: '社區/鄰里', example: 'Quiet and friendly neighborhood.' },
+            { word: 'Pillowcase', ipa: '/ˈpɪloʊkeɪs/', pos: 'n.', meaning: '枕頭套', example: 'Change clean pillowcase.' },
+            { word: 'Wardrobe', ipa: '/ˈwɔːrdroʊb/', pos: 'n.', meaning: '衣櫃', example: 'Hang jacket in wardrobe.' },
+            { word: 'Thermometer', ipa: '/θərˈmɑːmɪtər/', pos: 'n.', meaning: '體溫計', example: 'Measure fever with thermometer.' },
+            { word: 'First-aid kit', ipa: '/fɜːrst eɪd/', pos: 'n.', meaning: '急救箱', example: 'Keep a first-aid kit nearby.' },
+            { word: 'Detergent', ipa: '/dɪˈtɜːrdʒənt/', pos: 'n.', meaning: '洗衣精/清潔劑', example: 'Pour detergent into washer.' },
+            { word: 'Umbrella', ipa: '/ʌmˈbrɛlə/', pos: 'n.', meaning: '雨傘', example: 'Take umbrella on rainy day.' },
+            { word: 'Raincoat', ipa: '/ˈreɪnkoʊt/', pos: 'n.', meaning: '雨衣', example: 'Wear raincoat while riding.' },
+            { word: 'Wallet', ipa: '/ˈwɑːlɪt/', pos: 'n.', meaning: '皮夾', example: 'Keep cash in wallet.' },
+            { word: 'Keyring', ipa: '/ˈkiːrɪŋ/', pos: 'n.', meaning: '鑰匙圈', example: 'Attach house key to keyring.' },
+            { word: 'Document', ipa: '/ˈdɑːkjəmənt/', pos: 'n.', meaning: '文件', example: 'Sign official document.' },
+            { word: 'Contract', ipa: '/ˈkɑːntrækt/', pos: 'n.', meaning: '合約', example: 'Read apartment contract.' },
+            { word: 'Invoice', ipa: '/ˈɪnvɔɪs/', pos: 'n.', meaning: '發票/請款單', example: 'Send invoice to accounting.' },
+            { word: 'Ingredient', ipa: '/ɪnˈɡriːdiənt/', pos: 'n.', meaning: '食材/成分', example: 'Fresh salad ingredients.' },
+            { word: 'Recipe', ipa: '/ˈrɛsəpi/', pos: 'n.', meaning: '食譜', example: 'Follow baking recipe.' },
+            { word: 'Beverage', ipa: '/ˈbɛvərɪdʒ/', pos: 'n.', meaning: '飲料', example: 'Cold iced beverage.' },
+            { word: 'Pastry', ipa: '/ˈpeɪstri/', pos: 'n.', meaning: '糕點/西點', example: 'Fresh bakery pastry.' },
+            { word: 'Seafood', ipa: '/ˈsiːfuːd/', pos: 'n.', meaning: '海鮮', example: 'Enjoy fresh seafood dish.' },
+            { word: 'Dessert', ipa: '/dɪˈzɜːrt/', pos: 'n.', meaning: '甜點', example: 'Order chocolate dessert.' },
+            { word: 'Snack', ipa: '/snæk/', pos: 'n.', meaning: '零食/點心', example: 'Grab a healthy snack.' },
+            { word: 'Utensil', ipa: '/juːˈtɛnsəl/', pos: 'n.', meaning: '餐具/廚具', example: 'Kitchen cooking utensils.' },
+            { word: 'Napkin', ipa: '/ˈnæpkɪn/', pos: 'n.', meaning: '餐巾紙', example: 'Wipe hands with napkin.' },
+            { word: 'Tablecloth', ipa: '/ˈteɪbəlklɔːθ/', pos: 'n.', meaning: '桌布', example: 'Spread clean tablecloth.' },
+            { word: 'Furniture', ipa: '/ˈfɜːrnɪtʃər/', pos: 'n.', meaning: '家具', example: 'Modern wooden furniture.' },
+            { word: 'Apartment', ipa: '/əˈpɑːrtmənt/', pos: 'n.', meaning: '公寓', example: 'Rent a cozy apartment.' },
+            { word: 'Lease', ipa: '/liːs/', pos: 'n.', meaning: '租約', example: 'Sign one-year lease.' },
+            { word: 'Landlord', ipa: '/ˈlændlɔːrd/', pos: 'n.', meaning: '房東', example: 'Pay rent to landlord.' },
+            { word: 'Tenant', ipa: '/ˈtɛnənt/', pos: 'n.', meaning: '房客', example: 'New apartment tenant.' },
+            { word: 'Maintenance', ipa: '/ˈmeɪntənəns/', pos: 'n.', meaning: '維修/保養', example: 'Building maintenance team.' },
+            { word: 'Plumber', ipa: '/ˈplʌmər/', pos: 'n.', meaning: '水管工', example: 'Call plumber to fix leak.' },
+            { word: 'Electricity', ipa: '/ɪˌlɛkˈtrɪsəti/', pos: 'n.', meaning: '電力', example: 'Save home electricity bill.' },
+            { word: 'Utility', ipa: '/juːˈtɪləti/', pos: 'n.', meaning: '水電公用事業', example: 'Monthly utility bill.' },
+            { word: 'Insurance', ipa: '/ɪnˈʃʊrəns/', pos: 'n.', meaning: '保險', example: 'Health travel insurance.' },
+            { word: 'Policy', ipa: '/ˈpɑːləsi/', pos: 'n.', meaning: '政策/保單', example: 'Company return policy.' },
+            { word: 'Claim', ipa: '/kleɪm/', pos: 'n.', meaning: '索賠/申報', example: 'File insurance claim.' },
+            { word: 'Refund', ipa: '/ˈriːfʌnd/', pos: 'n.', meaning: '退款', example: 'Request full refund.' },
+            { word: 'Exchange', ipa: '/ɪksˈtʃeɪndʒ/', pos: 'v.', meaning: '換貨/兌換', example: 'Exchange item for size.' },
+            { word: 'Guarantee', ipa: '/ˌɡærənˈtiː/', pos: 'n.', meaning: '保證/擔保', example: 'Two-year quality guarantee.' },
+            { word: 'Warranty', ipa: '/ˈwɔːrənti/', pos: 'n.', meaning: '保固書', example: 'Product under warranty.' },
+            { word: 'Delivery', ipa: '/dɪˈlɪvəri/', pos: 'n.', meaning: '外送/快遞', example: 'Express home delivery.' },
+            { word: 'Courier', ipa: '/ˈkʊriər/', pos: 'n.', meaning: '快遞員', example: 'Courier package arrival.' },
+            { word: 'Package', ipa: '/ˈpækɪdʒ/', pos: 'n.', meaning: '包裹', example: 'Receive heavy package.' },
+            { word: 'Tracking number', ipa: '/ˈtrækɪŋ/', pos: 'n.', meaning: '包裹追蹤碼', example: 'Check parcel tracking number.' },
+            { word: 'Signature', ipa: '/ˈsɪɡnətʃər/', pos: 'n.', meaning: '簽名', example: 'Require delivery signature.' },
+            { word: 'Feedback', ipa: '/ˈfiːdbæk/', pos: 'n.', meaning: '回饋意見', example: 'Give positive feedback.' },
+            { word: 'Review', ipa: '/rɪˈvjuː/', pos: 'n.', meaning: '評價/複習', example: 'Read online reviews.' },
+            { word: 'Rating', ipa: '/ˈreɪtɪŋ/', pos: 'n.', meaning: '星級評分', example: 'Five star high rating.' },
+            { word: 'Complaint', ipa: '/kəmˈpleɪnt/', pos: 'n.', meaning: '抱怨/客訴', example: 'Handle customer complaint.' },
+            { word: 'Solution', ipa: '/səˈluːʃən/', pos: 'n.', meaning: '解決方案', example: 'Find quick solution.' },
+            { word: 'Emergency', ipa: '/ɪˈmɜːrdʒənsi/', pos: 'n.', meaning: '緊急狀況', example: 'In case of emergency.' },
+            { word: 'Ambulance', ipa: '/ˈæmbjələns/', pos: 'n.', meaning: '救護車', example: 'Call an ambulance now.' },
+            { word: 'Prescription', ipa: '/prɪˈskrɪpʃən/', pos: 'n.', meaning: '處方箋', example: 'Doctor prescription note.' },
+            { word: 'Symptom', ipa: '/ˈsɪmptəm/', pos: 'n.', meaning: '症狀', example: 'Cold flu symptoms.' },
+            { word: 'Allergy', ipa: '/ˈælərdʒi/', pos: 'n.', meaning: '過敏', example: 'Peanut food allergy.' },
+            { word: 'Diagnosis', ipa: '/ˌdaɪəɡˈnoʊsɪs/', pos: 'n.', meaning: '診斷結果', example: 'Medical hospital diagnosis.' },
+            { word: 'Treatment', ipa: '/ˈtriːtmənt/', pos: 'n.', meaning: '治療', example: 'Effective clinic treatment.' },
+            { word: 'Medication', ipa: '/ˌmɛdɪˈkeɪʃən/', pos: 'n.', meaning: '藥物', example: 'Take daily medication.' },
+            { word: 'Ointment', ipa: '/ˈɔɪntmənt/', pos: 'n.', meaning: '藥膏', example: 'Apply skin ointment.' },
+            { word: 'Bandage', ipa: '/ˈbændɪdʒ/', pos: 'n.', meaning: '繃帶/OK繃', example: 'Wrap arm with bandage.' },
+            { word: 'Disinfectant', ipa: '/ˌdɪsɪnˈfɛktənt/', pos: 'n.', meaning: '消毒劑', example: 'Use alcohol disinfectant.' },
+            { word: 'Hand sanitizer', ipa: '/ˈsænɪtaɪzər/', pos: 'n.', meaning: '洗手凝膠', example: 'Clean hands with sanitizer.' },
+            { word: 'Passport', ipa: '/ˈpæspɔːrt/', pos: 'n.', meaning: '護照', example: 'Renew valid passport.' },
+            { word: 'Customs', ipa: '/ˈkʌstəmz/', pos: 'n.', meaning: '海關', example: 'Pass airport customs.' },
+            { word: 'Immigration', ipa: '/ˌɪmɪˈɡreɪʃən/', pos: 'n.', meaning: '移民局/入境審查', example: 'Clear border immigration.' },
+            { word: 'Terminal', ipa: '/ˈtɜːrmənəl/', pos: 'n.', meaning: '航廈/終點站', example: 'Departure terminal 2.' },
+            { word: 'Shuttle', ipa: '/ˈʃʌtəl/', pos: 'n.', meaning: '接駁車', example: 'Hotel airport shuttle.' },
+            { word: 'Transfer', ipa: '/trænsˈfɜːr/', pos: 'v.', meaning: '轉乘/轉帳', example: 'Transfer subway line.' },
+            { word: 'Accommodation', ipa: '/əˌkɑːməˈdeɪʃən/', pos: 'n.', meaning: '住宿', example: 'Book hotel accommodation.' },
+            { word: 'Reception', ipa: '/rɪˈsɛpʃən/', pos: 'n.', meaning: '接待櫃檯', example: 'Check in at reception.' },
+            { word: 'Concierge', ipa: '/kɑːnsiˈɛərʒ/', pos: 'n.', meaning: '禮賓服務台', example: 'Ask concierge for directions.' },
+            { word: 'Sightseeing', ipa: '/ˈsaɪtsiːɪŋ/', pos: 'n.', meaning: '觀光', example: 'Go city sightseeing bus.' },
+            { word: 'Guide', ipa: '/ɡaɪd/', pos: 'n.', meaning: '導遊/指南', example: 'Local tour guide.' },
+            { word: 'Landmark', ipa: '/ˈlændmɑːrk/', pos: 'n.', meaning: '地標', example: 'Famous city landmark.' },
+            { word: 'Monument', ipa: '/ˈmɑːnjəmənt/', pos: 'n.', meaning: '紀念碑/遺跡', example: 'Historic war monument.' },
+            { word: 'Ticket', ipa: '/ˈtɪkɪt/', pos: 'n.', meaning: '門票/車票', example: 'Concert entrance ticket.' },
+            { word: 'Exhibition', ipa: '/ˌɛksɪˈbɪʃən/', pos: 'n.', meaning: '展覽', example: 'Art gallery exhibition.' },
+            { word: 'Gallery', ipa: '/ˈɡæləri/', pos: 'n.', meaning: '畫廊/美術館', example: 'Visit photo gallery.' },
+            { word: 'Admission', ipa: '/ədˈmɪʃən/', pos: 'n.', meaning: '門票費用/入場', example: 'Free admission ticket.' },
+            { word: 'Fare', ipa: '/fɛr/', pos: 'n.', meaning: '車資/票價', example: 'Pay bus transit fare.' },
+            { word: 'Platform', ipa: '/ˈplætfɔːrm/', pos: 'n.', meaning: '月台/平台', example: 'Train arrives platform 3.' },
+            { word: 'Delay', ipa: '/dɪˈleɪ/', pos: 'n.', meaning: '延誤/誤點', example: 'Flight weather delay.' },
+            { word: 'Cancellation', ipa: '/ˌkænsəˈleɪʃən/', pos: 'n.', meaning: '取消', example: 'Trip booking cancellation.' },
+            { word: 'Announcement', ipa: '/əˈnaʊnsmənt/', pos: 'n.', meaning: '廣播公告', example: 'Listen to gate announcement.' },
+            { word: 'Passenger', ipa: '/ˈpæsəndʒər/', pos: 'n.', meaning: '乘客', example: 'Flight onboard passengers.' },
+            { word: 'Improve', ipa: '/ɪmˈpruːv/', pos: 'v.', meaning: '改善/進步', example: 'Improve speaking skills.' },
+            { word: 'Concentrate', ipa: '/ˈkɑːnsəntreɪt/', pos: 'v.', meaning: '專心/集中', example: 'Concentrate on reading.' },
+            { word: 'Encourage', ipa: '/ɪnˈkɜːrɪdʒ/', pos: 'v.', meaning: '鼓勵', example: 'Encourage team members.' },
+            { word: 'Recognize', ipa: '/ˈrɛkəɡnaɪz/', pos: 'v.', meaning: '認出/承認', example: 'Recognize familiar face.' },
+            { word: 'Organize', ipa: '/ˈɔːrɡənaɪz/', pos: 'v.', meaning: '組織/整理', example: 'Organize desk files.' },
+            { word: 'Participate', ipa: '/pɑːrˈtɪsəpeɪt/', pos: 'v.', meaning: '參與', example: 'Participate in event.' },
+            { word: 'Translate', ipa: '/trænsˈleɪt/', pos: 'v.', meaning: '翻譯', example: 'Translate English text.' },
+            { word: 'Recommend', ipa: '/ˌrɛkəˈmɛnd/', pos: 'v.', meaning: '推薦', example: 'Recommend good dish.' }
+        ];
+
+        // 3. TOPIK II 韓檢必背 150 精選單字庫
+        const topikData = [
+            { word: '결과', ipa: '[결과]', pos: '名', meaning: '結果', example: '좋은 결과를 얻었습니다.' },
+            { word: '영향', ipa: '[영향]', pos: '名', meaning: '影響', example: '환경에 큰 영향을 미칩니다.' },
+            { word: '원인', ipa: '[원인]', pos: '名', meaning: '原因', example: '문제의 원인을 분석합니다.' },
+            { word: '과정', ipa: '[과정]', pos: '名', meaning: '過程', example: '학습 과정이 중요합니다.' },
+            { word: '강조하다', ipa: '[강조하다]', pos: '動', meaning: '強調', example: '안전을 다시 한번 강조했습니다.' },
+            { word: '해결하다', ipa: '[해결하다]', pos: '動', meaning: '解決', example: '갈등을 평화롭게 해결하다.' },
+            { word: '다양하다', ipa: '[다양하다]', pos: '形', meaning: '多樣', example: '다양한 의견을 수렴하다.' },
+            { word: '부족하다', ipa: '[부족하다]', pos: '形', meaning: '不足', example: '시간이 많이 부족합니다.' },
+            { word: '반드시', ipa: '[반드시]', pos: '副', meaning: '務必/一定', example: '약속을 반드시 지키세요.' },
+            { word: '오히려', ipa: '[오히려]', pos: '副', meaning: '反而', example: '오히려 더 좋은 기회가 되었다.' },
+            { word: '가치', ipa: '[가치]', pos: '名', meaning: '價值', example: '가치를 높이다.' },
+            { word: '기회', ipa: '[기회]', pos: '名', meaning: '機會', example: '좋은 기회를 잡다.' },
+            { word: '노력', ipa: '[노력]', pos: '名', meaning: '努力', example: '지속적인 노력이 필요하다.' },
+            { word: '상태', ipa: '[상태]', pos: '名', meaning: '狀態', example: '건강 상태를 점검하다.' },
+            { word: '정보', ipa: '[정보]', pos: '名', meaning: '資訊/情報', example: '유용한 정보를 제공하다.' },
+            { word: '주제', ipa: '[주제]', pos: '名', meaning: '主題', example: '토론의 주제를 정하다.' },
+            { word: '태도', ipa: '[태도]', pos: '名', meaning: '態度', example: '긍정적인 태도를 가지다.' },
+            { word: '특징', ipa: '[특징]', pos: '名', meaning: '特徵', example: '제품의 주요 특징입니다.' },
+            { word: '평균', ipa: '[평균]', pos: '名', meaning: '平均', example: '평균 점수가 상승했습니다.' },
+            { word: '현상', ipa: '[현상]', pos: '名', meaning: '現象', example: '자연 현상을 연구하다.' },
+            { word: '환경', ipa: '[환경]', pos: '名', meaning: '環境', example: '자연 환경을 보호하다.' },
+            { word: '활동', ipa: '[활동]', pos: '名', meaning: '活動', example: '다양한 봉사 활동.' },
+            { word: '경험', ipa: '[경험]', pos: '名', meaning: '經驗', example: '풍부한 경험을 쌓다.' },
+            { word: '교육', ipa: '[교육]', pos: '名', meaning: '教育', example: '교육 제도를 개선하다.' },
+            { word: '사회', ipa: '[사회]', pos: '名', meaning: '社會', example: '현대 사회의 문제점.' },
+            { word: '지식', ipa: '[지식]', pos: '名', meaning: '知識', example: '전문 지식을 습득하다.' },
+            { word: '목적', ipa: '[목적]', pos: '名', meaning: '目的', example: '방문의 목적을 밝히다.' },
+            { word: '방안', ipa: '[방안]', pos: '名', meaning: '方案', example: '해결 방안을 모색하다.' },
+            { word: '기술', ipa: '[기술]', pos: '名', meaning: '技術', example: '새로운 기술을 개발하다.' },
+            { word: '문제', ipa: '[문제]', pos: '名', meaning: '問題', example: '심각한 사회적 문제.' },
+            { word: '상황', ipa: '[상황]', pos: '名', meaning: '狀況/情況', example: '현재 상황을 파악하다.' },
+            { word: '의견', ipa: '[의견]', pos: '名', meaning: '意見', example: '서로의 의견을 나누다.' },
+            { word: '이유', ipa: '[이유]', pos: '名', meaning: '理由', example: '선택한 이유를 설명하다.' },
+            { word: '변화', ipa: '[변화]', pos: '名', meaning: '變化', example: '급격한 기후 변화.' },
+            { word: '연구', ipa: '[연구]', pos: '名', meaning: '研究', example: '과학 연구를 진행하다.' },
+            { word: '조사', ipa: '[조사]', pos: '名', meaning: '調查', example: '설문 조사를 실시하다.' },
+            { word: '대책', ipa: '[대책]', pos: '名', meaning: '對策', example: '안전 대책을 마련하다.' },
+            { word: '제도', ipa: '[제도]', pos: '名', meaning: '制度', example: '새로운 제도를 도입하다.' },
+            { word: '입장', ipa: '[입장]', pos: '名', meaning: '立場', example: '상대방의 입장을 이해하다.' },
+            { word: '가능성', ipa: '[가능성]', pos: '名', meaning: '可能性', example: '성공 가능성이 높다.' },
+            { word: '우려', ipa: '[우려]', pos: '名', meaning: '憂慮/擔憂', example: '부작용에 대한 우려.' },
+            { word: '한계', ipa: '[한계]', pos: '名', meaning: '極限/局限', example: '능력의 한계를 느끼다.' },
+            { word: '분석', ipa: '[분석]', pos: '名', meaning: '分析', example: '시장 데이터를 분석하다.' },
+            { word: '정책', ipa: '[정책]', pos: '名', meaning: '政策', example: '청년 지원 정책.' },
+            { word: '창의성', ipa: '[창의성]', pos: '名', meaning: '創意', example: '창의성을 키우다.' },
+            { word: '효과', ipa: '[효과]', pos: '名', meaning: '效果', example: '약의 효과가 나타나다.' },
+            { word: '역할', ipa: '[역할]', pos: '名', meaning: '角色/作用', example: '중요한 역할을 담당하다.' },
+            { word: '필요성', ipa: '[필요성]', pos: '名', meaning: '必要性', example: '개선의 필요성을 느낍니다.' },
+            { word: '중요성', ipa: '[중요성]', pos: '名', meaning: '重要性', example: '건강의 중요성을 강조하다.' },
+            { word: '관계', ipa: '[관계]', pos: '名', meaning: '關係', example: '좋은 관계를 유지하다.' },
+            { word: '관심', ipa: '[관심]', pos: '名', meaning: '關心', example: '환경 문제에 대한 관심.' },
+            { word: '관리', ipa: '[관리]', pos: '名', meaning: '管理', example: '건강을 철저히 관리하다.' },
+            { word: '발전', ipa: '[발전]', pos: '名', meaning: '發展', example: '경제 발전을 이루다.' },
+            { word: '문제점', ipa: '[문제점]', pos: '名', meaning: '問題點', example: '기존 제도의 문제점.' },
+            { word: '해결책', ipa: '[해결책]', pos: '名', meaning: '解決策', example: '명확한 해결책을 찾다.' },
+            { word: '혜택', ipa: '[혜택]', pos: '名', meaning: '惠澤/福利', example: '다양한 혜택을 받다.' },
+            { word: '손해', ipa: '[손해]', pos: '名', meaning: '損害/損失', example: '경제적 손해를 입다.' },
+            { word: '차이', ipa: '[차이]', pos: '名', meaning: '差異', example: '문화적 차이를 극복하다.' },
+            { word: '비교', ipa: '[비교]', pos: '名', meaning: '比較', example: '두 제품을 비교하다.' },
+            { word: '기준', ipa: '[기준]', pos: '名', meaning: '基準/標準', example: '평가 기준을 정하다.' },
+            { word: '대상', ipa: '[대상]', pos: '名', meaning: '對象', example: '청소년을 대상으로 실시하다.' },
+            { word: '범위', ipa: '[범위]', pos: '名', meaning: '範圍', example: '조사 범위를 넓히다.' },
+            { word: '수단', ipa: '[수단]', pos: '名', meaning: '手段', example: '교통 수단을 이용하다.' },
+            { word: '조건', ipa: '[조건]', pos: '名', meaning: '條件', example: '계약 조건을 확인하다.' },
+            { word: '현황', ipa: '[현황]', pos: '名', meaning: '現況', example: '산업 현황을 조사하다.' },
+            { word: '배경', ipa: '[배경]', pos: '名', meaning: '背景', example: '시대적 배경을 알아보다.' },
+            { word: '영향력', ipa: '[영향력]', pos: '名', meaning: '影響力', example: '사회적 영향력이 크다.' },
+            { word: '대중', ipa: '[대중]', pos: '名', meaning: '大眾', example: '대중의 사랑을 받다.' },
+            { word: '전문가', ipa: '[전문가]', pos: '名', meaning: '專家', example: '전문가의 자문을 구하다.' },
+            { word: '소비', ipa: '[소비]', pos: '名', meaning: '消費', example: '합리적인 소비 습관.' },
+            { word: '생산', ipa: '[생산]', pos: '名', meaning: '生產', example: '제품 생산량을 늘리다.' },
+            { word: '시장', ipa: '[시장]', pos: '名', meaning: '市場', example: '세계 시장을 개척하다.' },
+            { word: '경제', ipa: '[경제]', pos: '名', meaning: '經濟', example: '국가 경제를 활성화하다.' },
+            { word: '문화', ipa: '[문화]', pos: '名', meaning: '文化', example: '전통 문화를 보존하다.' },
+            { word: '역사', ipa: '[역사]', pos: '名', meaning: '歷史', example: '오랜 역사를 자랑하다.' },
+            { word: '개최하다', ipa: '[개최하다]', pos: '動', meaning: '舉辦/召開', example: '국제 회의를 개최하다.' },
+            { word: '고려하다', ipa: '[고려하다]', pos: '動', meaning: '考慮', example: '여러 조건을 고려하다.' },
+            { word: '담당하다', ipa: '[담당하다]', pos: '動', meaning: '擔當/負責', example: '중요 업무를 담당하다.' },
+            { word: '발생하다', ipa: '[발생하다]', pos: '動', meaning: '發生', example: '예상치 못한 사건이 발생하다.' },
+            { word: '선택하다', ipa: '[선택하다]', pos: '動', meaning: '選擇', example: '올바른 길을 선택하다.' },
+            { word: '유지하다', ipa: '[유지하다]', pos: '動', meaning: '維持', example: '적정 체중을 유지하다.' },
+            { word: '제시하다', ipa: '[제시하다]', pos: '動', meaning: '提示/提出', example: '새로운 의견을 제시하다.' },
+            { word: '결정하다', ipa: '[결정하다]', pos: '動', meaning: '決定', example: '최종 방안을 결정하다.' },
+            { word: '발전하다', ipa: '[발전하다]', pos: '動', meaning: '發展', example: '기술이 빠르게 발전하다.' },
+            { word: '전달하다', ipa: '[전달하다]', pos: '動', meaning: '傳達', example: '메시지를 정확히 전달하다.' },
+            { word: '표현하다', ipa: '[표현하다]', pos: '動', meaning: '表達', example: '감정을 솔직하게 표현하다.' },
+            { word: '참여하다', ipa: '[참여하다]', pos: '動', meaning: '參與', example: '행사에 적극 참여하다.' },
+            { word: '계획하다', ipa: '[계획하다]', pos: '動', meaning: '計劃', example: '여행 일정을 계획하다.' },
+            { word: '극복하다', ipa: '[극복하다]', pos: '動', meaning: '克服', example: '위기를 성공적으로 극복하다.' },
+            { word: '인정하다', ipa: '[인정하다]', pos: '動', meaning: '承認/認可', example: '자신의 실수를 인정하다.' },
+            { word: '작용하다', ipa: '[작용하다]', pos: '動', meaning: '作用/起作用', example: '중요한 요인으로 작용하다.' },
+            { word: '증가하다', ipa: '[증가하다]', pos: '動', meaning: '增加', example: '수출량이 급격히 증가하다.' },
+            { word: '감소하다', ipa: '[감소하다]', pos: '動', meaning: '減少', example: '인구가 지속적으로 감소하다.' },
+            { word: '제공하다', ipa: '[제공하다]', pos: '動', meaning: '提供', example: '유용한 서비스를 제공하다.' },
+            { word: '주장하다', ipa: '[주장하다]', pos: '動', meaning: '主張', example: '자신의 권리를 주장하다.' },
+            { word: '평가하다', ipa: '[평가하다]', pos: '動', meaning: '評價', example: '성과를 공정하게 평가하다.' },
+            { word: '확인하다', ipa: '[확인하다]', pos: '動', meaning: '確認', example: '예약 내역을 확인하다.' },
+            { word: '요구하다', ipa: '[요구하다]', pos: '動', meaning: '要求', example: '개선을 강하게 요구하다.' },
+            { word: '지적하다', ipa: '[지적하다]', pos: '動', meaning: '指出', example: '문제점을 정확히 지적하다.' },
+            { word: '포함하다', ipa: '[포함하다]', pos: '動', meaning: '包含', example: '세금을 포함한 금액.' },
+            { word: '형성하다', ipa: '[형성하다]', pos: '動', meaning: '形成', example: '올바른 가치관을 형성하다.' },
+            { word: '수용하다', ipa: '[수용하다]', pos: '動', meaning: '接受/包容', example: '타인의 의견을 수용하다.' },
+            { word: '동의하다', ipa: '[동의하다]', pos: '動', meaning: '同意', example: '제안에 동의합니다.' },
+            { word: '인식하다', ipa: '[인식하다]', pos: '動', meaning: '認識到', example: '심각성을 인식하다.' },
+            { word: '방지하다', ipa: '[방지하다]', pos: '動', meaning: '防止', example: '사고를 미리 방지하다.' },
+            { word: '개선하다', ipa: '[개선하다]', pos: '動', meaning: '改善', example: '근무 환경을 개선하다.' },
+            { word: '실천하다', ipa: '[실천하다]', pos: '動', meaning: '實踐', example: '약속을 몸소 실천하다.' },
+            { word: '소통하다', ipa: '[소통하다]', pos: '動', meaning: '溝通', example: '이웃과 원활히 소통하다.' },
+            { word: '성장하다', ipa: '[성장하다]', pos: '動', meaning: '成長', example: '기업이 크게 성장하다.' },
+            { word: '창출하다', ipa: '[창출하다]', pos: '動', meaning: '創造/產出', example: '일자리를 많이 창출하다.' },
+            { word: '추진하다', ipa: '[추진하다]', pos: '動', meaning: '推進/推動', example: '새 사업을 추진하다.' },
+            { word: '포기하다', ipa: '[포기하다]', pos: '動', meaning: '放棄', example: '꿈을 결코 포기하지 마라.' },
+            { word: '비판하다', ipa: '[비판하다]', pos: '動', meaning: '批判', example: '잘못된 정책을 비판하다.' },
+            { word: '낭비하다', ipa: '[낭비하다]', pos: '動', meaning: '浪費', example: '시간을 낭비하지 마세요.' },
+            { word: '절약하다', ipa: '[절약하다]', pos: '動', meaning: '節約', example: '에너지를 절약합시다.' },
+            { word: '무시하다', ipa: '[무시하다]', pos: '動', meaning: '無視/輕視', example: '경고를 무시해서는 안 된다.' },
+            { word: '존중하다', ipa: '[존중하다]', pos: '動', meaning: '尊重', example: '상대방을 존중하는 마음.' },
+            { word: '보호하다', ipa: '[보호하다]', pos: '動', meaning: '保護', example: '개인정보를 보호하다.' },
+            { word: '파괴하다', ipa: '[파괴하다]', pos: '動', meaning: '破壞', example: '자연을 파괴하지 맙시다.' },
+            { word: '수립하다', ipa: '[수립하다]', pos: '動', meaning: '樹立/制定', example: '장기 계획을 수립하다.' },
+            { word: '촉진하다', ipa: '[촉진하다]', pos: '動', meaning: '促進', example: '소비를 촉진하다.' },
+            { word: '억제하다', ipa: '[억제하다]', pos: '動', meaning: '抑制', example: '물가 상승을 억제하다.' },
+            { word: '겪다', ipa: '[겪다]', pos: '動', meaning: '經歷/遭受', example: '어려움을 직접 겪다.' },
+            { word: '익숙하다', ipa: '[익숙하다]', pos: '形', meaning: '熟悉', example: '새 환경에 익숙해지다.' },
+            { word: '적당하다', ipa: '[적당하다]', pos: '形', meaning: '適當', example: '운동량이 적당하다.' },
+            { word: '중요하다', ipa: '[중요하다]', pos: '形', meaning: '重要', example: '건강이 가장 중요하다.' },
+            { word: '특별하다', ipa: '[특별하다]', pos: '形', meaning: '特別', example: '특별한 의미가 있다.' },
+            { word: '평범하다', ipa: '[평범하다]', pos: '形', meaning: '平凡', example: '평범한 일상생활.' },
+            { word: '해롭다', ipa: '[해롭다]', pos: '形', meaning: '有害', example: '몸에 해로운 음식.' },
+            { word: '복잡하다', ipa: '[복잡하다]', pos: '形', meaning: '複雜', example: '도로가 매우 복잡하다.' },
+            { word: '안전하다', ipa: '[안전하다]', pos: '形', meaning: '安全', example: '안전한 곳으로 피하다.' },
+            { word: '친절하다', ipa: '[친절하다]', pos: '形', meaning: '親切', example: '직원이 매우 친절하다.' },
+            { word: '깨끗하다', ipa: '[깨끗하다]', pos: '形', meaning: '乾淨', example: '방을 깨끗하게 청소하다.' },
+            { word: '조용하다', ipa: '[조용하다]', pos: '形', meaning: '安靜', example: '도서관은 조용합니다.' },
+            { word: '심각하다', ipa: '[심각하다]', pos: '形', meaning: '嚴重', example: '오염 문제가 심각하다.' },
+            { word: '충분하다', ipa: '[충분하다]', pos: '形', meaning: '充足', example: '시간이 충분합니다.' },
+            { word: '가능하다', ipa: '[가능하다]', pos: '形', meaning: '可能', example: '즉시 출발이 가능합니다.' },
+            { word: '효과적이다', ipa: '[효과적이다]', pos: '形', meaning: '有效的', example: '효과적인 학습 방법.' },
+            { word: '긍정적이다', ipa: '[긍정적이다]', pos: '形', meaning: '積極的正面的', example: '긍정적인 사고방식.' },
+            { word: '부정적이다', ipa: '[부정적이다]', pos: '形', meaning: '消極的負面的', example: '부정적인 영향을 미치다.' },
+            { word: '필수적이다', ipa: '[필수적이다]', pos: '形', meaning: '必要的', example: '성공의 필수적인 요소.' },
+            { word: '구체적이다', ipa: '[구체적이다]', pos: '形', meaning: '具體的', example: '구체적인 계획을 세우다.' },
+            { word: '객관적이다', ipa: '[객관적이다]', pos: '形', meaning: '客觀的', example: '객관적인 시각을 유지하다.' },
+            { word: '주관적이다', ipa: '[주관적이다]', pos: '形', meaning: '主觀的', example: '지극히 주관적인 판단.' },
+            { word: '효율적이다', ipa: '[효율적이다]', pos: '形', meaning: '有效率的', example: '시간을 효율적으로 사용하다.' },
+            { word: '명확하다', ipa: '[명확하다]', pos: '形', meaning: '明確', example: '목표가 명확해야 합니다.' },
+            { word: '뚜렷하다', ipa: '[뚜렷하다]', pos: '形', meaning: '明顯/清楚', example: '입장 차이가 뚜렷하다.' },
+            { word: '당황스럽다', ipa: '[당황스럽다]', pos: '形', meaning: '慌張', example: '갑작스러운 질문에 당황스럽다.' },
+            { word: '안타깝다', ipa: '[안타깝다]', pos: '形', meaning: '遺憾/惋惜', example: '기회를 놓쳐 안타깝다.' },
+            { word: '결국', ipa: '[결국]', pos: '副', meaning: '最終', example: '결국 승리했습니다.' },
+            { word: '드디어', ipa: '[드디어]', pos: '副', meaning: '終於', example: '드디어 꿈을 이루었다.' },
+            { word: '점차', ipa: '[점차]', pos: '副', meaning: '漸漸', example: '상황이 점차 나아지다.' },
+            { word: '마침내', ipa: '[마침내]', pos: '副', meaning: '終於', example: '마침내 난관을 극복하다.' },
+            { word: '솔직히', ipa: '[솔직히]', pos: '副', meaning: '坦白地', example: '솔직히 고백하자면.' }
+        ];
+
+        // 題庫資料庫動態綁定 (確保顯示數字與資料陣列長度 100% 精準一致)
+        const database = {
+            yoga: {
+                title: "瑜珈解剖專業單字",
+                get subtitle() { return `YTT 師資培訓核心口令 (${this.data.length}字)`; },
+                lang: "en-US",
+                data: yogaData
+            },
+            daily: {
+                title: "日常生活實用單字",
+                get subtitle() { return `A2-B1 常用核心詞彙 (${this.data.length}字)`; },
+                lang: "en-US",
+                data: dailyData
+            },
+            topik: {
+                title: "TOPIK II 韓檢必背",
+                get subtitle() { return `中高級高頻核心詞 (${this.data.length}字)`; },
+                lang: "ko-KR",
+                data: topikData
+            }
+        };
+
+        let favoriteWords = new Set();
+        let wrongWordsMap = new Map();
+
+        let currentModuleKey = 'yoga';
+        let currentSegment = 'all';
+        let fullSession10Words = [];
+        let roundIndex = 1;
+        let currentRound5 = [];
+        let selectedLeftCard = null;
+        let selectedRightCard = null;
+        let roundMatchedCount = 0;
+
+        let sessionStartTime = 0;
+        let totalMistakes = 0;
+
+        function toggleFavorite(wordText) {
+            if (favoriteWords.has(wordText)) {
+                favoriteWords.delete(wordText);
+            } else {
+                favoriteWords.add(wordText);
+            }
+            updateBadges();
+
+            const currentView = document.querySelector('section:not(.hidden)')?.id;
+            if (currentView === 'view-preview') renderPreviewList();
+            if (currentView === 'view-review') renderReviewList();
+        }
+
+        function updateBadges() {
+            document.getElementById('fav-count-badge').innerText = favoriteWords.size;
+            document.getElementById('wrong-count-badge').innerText = wrongWordsMap.size;
+            document.getElementById('profile-fav-count').innerText = `${favoriteWords.size} Words`;
+            document.getElementById('profile-wrong-count').innerText = `${wrongWordsMap.size} Words`;
+        }
+
+        function getFilteredWordsForModule(modKey) {
+            const allModData = database[modKey].data;
+            if (currentSegment === 'fav') {
+                return allModData.filter(item => favoriteWords.has(item.word));
+            } else if (currentSegment === 'wrong') {
+                return allModData.filter(item => wrongWordsMap.has(item.word));
+            }
+            return allModData;
+        }
+
+        function showView(viewId) {
+            const views = ['home', 'preview', 'game', 'complete', 'review', 'profile'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.getElementById('btn-top-back').classList.toggle('hidden', viewId === 'home');
+
+            if (viewId === 'home') renderModuleCards();
+            if (viewId === 'review') renderReviewList();
+            if (viewId === 'profile') setupProfileIconPreview();
+        }
+
+        function switchBottomTab(tab) {
+            const tabs = ['home', 'match', 'review', 'profile'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) {
+                    btn.classList.replace('text-[#355C7D]', 'text-[#777777]');
+                }
+            });
+            const activeBtn = document.getElementById(`nav-${tab}`);
+            if (activeBtn) activeBtn.classList.replace('text-[#777777]', 'text-[#355C7D]');
+
+            if (tab === 'home') showView('home');
+            if (tab === 'match') { initRoundSession(); }
+            if (tab === 'review') showView('review');
+            if (tab === 'profile') showView('profile');
+        }
+
+        function setSegment(seg) {
+            currentSegment = seg;
+            ['all', 'fav', 'wrong'].forEach(s => {
+                const btn = document.getElementById(`seg-${s}`);
+                if (btn) {
+                    btn.className = 'flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition';
+                }
+            });
+            const activeBtn = document.getElementById(`seg-${seg}`);
+            if (activeBtn) {
+                activeBtn.className = 'flex-1 py-1.5 text-center rounded-lg bg-white text-[#355C7D] shadow-sm font-semibold transition';
+            }
+            renderModuleCards();
+        }
+
+        function renderModuleCards() {
+            const container = document.getElementById('module-cards-container');
+            container.innerHTML = '';
+
+            Object.keys(database).forEach(key => {
+                const mod = database[key];
+                const filteredData = getFilteredWordsForModule(key);
+                const count = filteredData.length;
+
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-[#D9D3C8] rounded-[16px] p-4 shadow-level1 flex items-center justify-between cursor-pointer hover:border-[#355C7D] active:scale-[0.98] card-transition';
+
+                card.onclick = () => {
+                    if (count === 0) {
+                        alert(currentSegment === 'fav' ? '目前尚無收藏單字！可在預習或複習時點擊星號收藏。' : '目前尚無錯題紀錄，太棒了！');
+                        return;
+                    }
+                    currentModuleKey = key;
+                    initRoundSession();
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#FFFDF8] border border-[#ECE7DE] flex items-center justify-center text-[#355C7D]">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-base text-[#355C7D]">${mod.title}</h3>
+                            <p class="meta-text">${mod.subtitle}</p>
+                        </div>
+                    </div>
+                    <span class="font-handwriting text-xl ${count === 0 ? 'text-[#777777]' : 'text-[#F67280]'} font-bold">${count} Words</span>
+                `;
+                container.appendChild(card);
+            });
         }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                utterance.rate = 0.8;
-                window.speechSynthesis.speak(utterance);
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = database[currentModuleKey].lang || 'en-US';
+                u.rate = 0.85;
+                window.speechSynthesis.speak(u);
             }
         }
 
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
+        function shuffle(arr) {
+            return [...arr].sort(() => Math.random() - 0.5);
         }
 
-        function initRound() {
-            selectedEngCard = null; selectedZhCard = null; matchedCount = 0;
-            currentRoundData = shuffle([...allVocab[currentMode]]).slice(0, 10);
-            
-            const previewList = document.getElementById('preview-list');
-            previewList.innerHTML = '';
-            currentRoundData.forEach(item => {
+        function getFontSize(text) {
+            const len = text.length;
+            if (len > 20) return 'text-[11px] leading-[13px]';
+            if (len > 14) return 'text-xs leading-snug';
+            if (len > 9)  return 'text-sm leading-snug';
+            return 'text-base leading-normal';
+        }
+
+        function renderPreviewList() {
+            const previewContainer = document.getElementById('preview-list-container');
+            previewContainer.innerHTML = '';
+
+            fullSession10Words.forEach(item => {
+                const isFav = favoriteWords.has(item.word);
                 const row = document.createElement('div');
-                row.className = 'flex items-center justify-between bg-white border border-slate-200 p-4 rounded-2xl cursor-pointer active:bg-indigo-50 transition shadow-sm';
-                row.onclick = () => speak(item.en);
-                row.innerHTML = `<span class="text-lg font-bold text-indigo-900">${item.en}</span><span class="text-lg text-slate-500">${item.zh}</span>`;
-                previewList.appendChild(row);
+                row.className = 'bg-[#FFFDF8] border border-[#ECE7DE] rounded-xl p-3 shadow-level1 flex flex-col space-y-1';
+                row.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="event.stopPropagation(); toggleFavorite('${item.word}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
+                                <svg class="w-4 h-4 ${isFav ? 'text-[#F67280] fill-current' : 'text-[#D9D3C8] fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </button>
+                            <span class="font-semibold text-[#355C7D] text-base">${item.word}</span>
+                            <span class="meta-text text-[11px] text-[#777777]">${item.ipa}</span>
+                            <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${item.pos}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium text-[#2D3748]">${item.meaning}</span>
+                            <button onclick="speak('${item.word}')" class="p-1 text-[#355C7D] hover:scale-110 active:scale-95 transition" aria-label="發音">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-[#777777] italic">"${item.example}"</p>
+                `;
+                previewContainer.appendChild(row);
             });
-            showScreen('preview-screen');
         }
 
-        function startGame() {
-            showScreen('game-screen');
-            const engCol = document.getElementById('english-col');
-            const zhCol = document.getElementById('chinese-col');
-            engCol.innerHTML = ''; zhCol.innerHTML = '';
+        function initRoundSession() {
+            selectedLeftCard = null; selectedRightCard = null;
+            roundIndex = 1;
+            totalMistakes = 0;
+            sessionStartTime = Date.now();
 
-            let engCards = shuffle(currentRoundData.map(i => ({ id: i.en, text: i.en, type: 'en' })));
-            let zhCards = shuffle(currentRoundData.map(i => ({ id: i.en, text: i.zh, type: 'zh' })));
+            const availableWords = getFilteredWordsForModule(currentModuleKey);
+            if (availableWords.length === 0) {
+                alert('目前選取的範疇沒有單字可供練習！');
+                showView('home');
+                return;
+            }
 
-            const createCard = (card, container) => {
-                const el = document.createElement('div');
-                el.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight select-none';
-                el.innerText = card.text;
-                el.onclick = () => handleCardClick(el, card);
-                container.appendChild(el);
-            };
+            fullSession10Words = shuffle(availableWords).slice(0, 10);
+            renderPreviewList();
+            showView('preview');
+        }
 
-            engCards.forEach(c => createCard(c, engCol));
-            zhCards.forEach(c => createCard(c, zhCol));
+        function startRoundChallenge() {
+            showView('game');
+            roundMatchedCount = 0;
+            selectedLeftCard = null; selectedRightCard = null;
+
+            const startIdx = (roundIndex - 1) * 5;
+            currentRound5 = fullSession10Words.slice(startIdx, startIdx + 5);
+
+            document.getElementById('round-label').innerText = `Round ${roundIndex} of 2`;
+            document.getElementById('match-score-text').innerText = `Matched: 0 / 5`;
+            document.getElementById('game-progress-bar').style.width = `0%`;
+
+            const leftCol = document.getElementById('left-words-col');
+            const rightCol = document.getElementById('right-meanings-col');
+            leftCol.innerHTML = ''; rightCol.innerHTML = '';
+
+            let leftCards = shuffle(currentRound5.map(i => ({ id: i.word, text: i.word, pos: i.pos, itemObj: i, type: 'left' })));
+            let rightCards = shuffle(currentRound5.map(i => ({ id: i.word, text: i.meaning, type: 'right' })));
+
+            leftCards.forEach(c => {
+                const card = document.createElement('div');
+                const fontClass = getFontSize(c.text);
+                card.className = 'state-default rounded-[16px] h-[64px] relative flex flex-col justify-center items-center shadow-level1 cursor-pointer card-transition active:scale-[0.96] select-none px-2';
+                card.innerHTML = `
+                    <span class="absolute top-1.5 left-2.5 meta-text text-[10px] leading-none opacity-80 pointer-events-none">${c.pos}</span>
+                    <div class="px-5 w-full flex items-center justify-center text-center">
+                        <span class="font-semibold ${fontClass} text-center break-words hyphens-auto max-w-full">${c.text}</span>
+                    </div>
+                    <button onclick="event.stopPropagation(); speak('${c.text}')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#355C7D] opacity-60 hover:opacity-100 active:scale-90 transition" aria-label="發音">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    </button>
+                `;
+                card.onclick = () => handleCardClick(card, c);
+                leftCol.appendChild(card);
+            });
+
+            rightCards.forEach(c => {
+                const card = document.createElement('div');
+                const fontClass = getFontSize(c.text);
+                card.className = 'state-default rounded-[16px] h-[64px] px-2 flex items-center justify-center text-center font-semibold shadow-level1 cursor-pointer card-transition active:scale-[0.96] select-none';
+                card.innerHTML = `<span class="${fontClass} text-center break-words leading-snug px-1">${c.text}</span>`;
+                card.onclick = () => handleCardClick(card, c);
+                rightCol.appendChild(card);
+            });
+        }
+
+        function startMatchingGame() {
+            roundIndex = 1;
+            startRoundChallenge();
         }
 
         function handleCardClick(element, card) {
             if (element.classList.contains('pointer-events-none')) return;
 
-            if (card.type === 'en') {
+            triggerHaptic('light');
+
+            if (card.type === 'left') {
                 speak(card.text);
-                if (selectedEngCard) selectedEngCard.el.classList.replace('border-indigo-600', 'border-slate-200');
-                selectedEngCard = { el: element, id: card.id };
-                element.classList.replace('border-slate-200', 'border-indigo-600');
+                if (selectedLeftCard) selectedLeftCard.el.className = selectedLeftCard.el.className.replace('state-selected', 'state-default');
+                selectedLeftCard = { el: element, id: card.id, itemObj: card.itemObj };
+                element.className = element.className.replace('state-default', 'state-selected');
             } else {
-                if (selectedZhCard) selectedZhCard.el.classList.replace('border-indigo-600', 'border-slate-200');
-                selectedZhCard = { el: element, id: card.id };
-                element.classList.replace('border-slate-200', 'border-indigo-600');
+                if (selectedRightCard) selectedRightCard.el.className = selectedRightCard.el.className.replace('state-selected', 'state-default');
+                selectedRightCard = { el: element, id: card.id };
+                element.className = element.className.replace('state-default', 'state-selected');
             }
 
-            if (selectedEngCard && selectedZhCard) {
-                const eEl = selectedEngCard.el; const zEl = selectedZhCard.el;
-                document.getElementById('game-screen').classList.add('pointer-events-none');
+            if (selectedLeftCard && selectedRightCard) {
+                const lEl = selectedLeftCard.el; const rEl = selectedRightCard.el;
+                document.getElementById('view-game').classList.add('pointer-events-none');
 
-                if (selectedEngCard.id === selectedZhCard.id) {
-                    [eEl, zEl].forEach(el => el.className = 'bg-emerald-500 border-emerald-600 text-white rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-lg transition duration-200 animate-pop');
-                    matchedCount++; selectedEngCard = null; selectedZhCard = null;
+                if (selectedLeftCard.id === selectedRightCard.id) {
+                    playSound('success');
+                    triggerHaptic('medium');
+
+                    [lEl, rEl].forEach(el => {
+                        el.className = el.className.replace('state-selected', 'state-correct') + ' animate-snap';
+                    });
+
+                    roundMatchedCount++;
+                    document.getElementById('match-score-text').innerText = `Matched: ${roundMatchedCount} / 5`;
+                    document.getElementById('game-progress-bar').style.width = `${(roundMatchedCount / 5) * 100}%`;
+
+                    selectedLeftCard = null; selectedRightCard = null;
+
                     setTimeout(() => {
-                        [eEl, zEl].forEach(el => el.classList.add('opacity-0', 'pointer-events-none'));
-                        document.getElementById('game-screen').classList.remove('pointer-events-none');
-                        if (matchedCount === 10) showScreen('win-message');
-                    }, 800);
+                        [lEl, rEl].forEach(el => el.classList.add('opacity-0', 'pointer-events-none'));
+                        document.getElementById('view-game').classList.remove('pointer-events-none');
+
+                        if (roundMatchedCount === 5) {
+                            if (roundIndex === 1 && fullSession10Words.length > 5) {
+                                roundIndex = 2;
+                                setTimeout(() => startRoundChallenge(), 350);
+                            } else {
+                                setTimeout(() => showCompletionScreen(), 350);
+                            }
+                        }
+                    }, 400);
+
                 } else {
-                    [eEl, zEl].forEach(el => el.className = 'bg-rose-500 border-rose-600 text-white rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-lg transition duration-200');
+                    playSound('wrong');
+                    totalMistakes++;
+
+                    if (selectedLeftCard.itemObj) {
+                        wrongWordsMap.set(selectedLeftCard.itemObj.word, selectedLeftCard.itemObj);
+                        updateBadges();
+                    }
+
+                    [lEl, rEl].forEach(el => {
+                        el.className = el.className.replace('state-selected', 'state-wrong');
+                    });
+
                     setTimeout(() => {
-                        eEl.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight';
-                        zEl.className = 'bg-white border-2 border-slate-200 rounded-2xl p-4 min-h-[85px] flex items-center justify-center text-center font-black text-xl shadow-md transition active:scale-95 leading-tight';
-                        selectedEngCard = null; selectedZhCard = null;
-                        document.getElementById('game-screen').classList.remove('pointer-events-none');
-                    }, 800);
+                        [lEl, rEl].forEach(el => {
+                            el.className = el.className.replace('state-wrong', 'state-default');
+                        });
+                        selectedLeftCard = null; selectedRightCard = null;
+                        document.getElementById('view-game').classList.remove('pointer-events-none');
+                    }, 250);
                 }
             }
         }
-        showScreen('menu-screen');
+
+        function showCompletionScreen() {
+            showView('complete');
+
+            const seconds = Math.max(1, Math.round((Date.now() - sessionStartTime) / 1000));
+            const total = fullSession10Words.length;
+            const accuracy = Math.max(0, Math.round(((total - totalMistakes) / total) * 100));
+
+            document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('stat-time').innerText = `${seconds}s`;
+            document.getElementById('stat-xp').innerText = `+${accuracy * 0.5 + 10} XP`;
+            document.getElementById('stat-mistakes').innerText = `${totalMistakes}`;
+
+            triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+
+            const particles = Array.from({ length: 40 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 6 + 4,
+                color: ['#F7E36A', '#F67280', '#6CC6A6', '#355C7D'][Math.floor(Math.random() * 4)],
+                vy: Math.random() * 3 + 2,
+                vx: (Math.random() - 0.5) * 2
+            }));
+
+            let frame = 0;
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.vy; p.x += p.vx;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                });
+                if (frame++ < 100) requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        function renderReviewList() {
+            const container = document.getElementById('review-list-container');
+            container.innerHTML = '';
+            const list = database[currentModuleKey].data;
+            document.getElementById('total-words-count').innerText = `Total: ${list.length}`;
+
+            list.forEach(item => {
+                const isFav = favoriteWords.has(item.word);
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-[#D9D3C8] rounded-xl p-3.5 shadow-level1 flex items-center justify-between';
+                card.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <button onclick="event.stopPropagation(); toggleFavorite('${item.word}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
+                            <svg class="w-5 h-5 ${isFav ? 'text-[#F67280] fill-current' : 'text-[#D9D3C8] fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </button>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-semibold text-[#355C7D]">${item.word}</span>
+                                <span class="meta-text text-[11px]">${item.ipa}</span>
+                                <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${item.pos}</span>
+                            </div>
+                            <p class="text-xs text-[#777777] mt-0.5">${item.meaning}</p>
+                        </div>
+                    </div>
+                    <button onclick="speak('${item.word}')" class="p-2 text-[#355C7D] hover:scale-110 active:scale-95 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function setupProfileIconPreview() {
+            const dataUrlA = generateIconA();
+            const dataUrlB = generateIconB();
+
+            document.getElementById('img-preview-A').src = dataUrlA;
+            document.getElementById('img-preview-B').src = dataUrlB;
+
+            const currentStyle = localStorage.getItem('vocab_matcher_icon_style') || 'A';
+            updateIconCardHighlight(currentStyle);
+        }
+
+        function updateIconCardHighlight(style) {
+            const cardA = document.getElementById('icon-card-A');
+            const cardB = document.getElementById('icon-card-B');
+
+            if (style === 'A') {
+                cardA.className = "border-2 border-[#355C7D] bg-[#FFFDF8] rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2 shadow-sm";
+                cardB.className = "border-2 border-[#ECE7DE] bg-white rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2 opacity-75 hover:opacity-100";
+            } else {
+                cardB.className = "border-2 border-[#355C7D] bg-[#FFFDF8] rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2 shadow-sm";
+                cardA.className = "border-2 border-[#ECE7DE] bg-white rounded-2xl p-3 text-center cursor-pointer transition flex flex-col items-center space-y-2 opacity-75 hover:opacity-100";
+            }
+        }
+
+        function selectAppIcon(style) {
+            localStorage.setItem('vocab_matcher_icon_style', style);
+            updateIconCardHighlight(style);
+
+            const iconDataUrl = (style === 'B') ? generateIconB() : generateIconA();
+
+            let linkIcon = document.querySelector("link[rel='icon']");
+            let linkApple = document.querySelector("link[rel='apple-touch-icon']");
+
+            if (linkIcon) linkIcon.href = iconDataUrl;
+            if (linkApple) linkApple.href = iconDataUrl;
+
+            alert('已成功切換桌面圖示！重新將網頁「加入主畫面」即可套用新圖示。');
+        }
+
+        // 啟動應用程式
+        updateBadges();
+        showView('home');
     </script>
 </body>
 </html>
