@@ -2,10 +2,10 @@
 
 > 一個可以換題庫的自學測驗小遊戲。
 
-[![Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black)](https://your-demo.vercel.app)
+[![Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black)](https://yoga-vocab.vercel.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**[👉 線上體驗 Vocab Matcher](https://your-demo.vercel.app)**（內含 TOPIK II 韓檢 + 瑜珈解剖與日常生活英文兩套題庫）
+**[👉 線上體驗 Vocab Matcher](https://yoga-vocab.vercel.app/)**（內含 TOPIK II 韓檢 + 瑜珈解剖與日常生活英文兩套題庫）
 
 ## 畫面預覽
 
