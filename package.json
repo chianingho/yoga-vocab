@@ -1,0 +1,13 @@
+{
+  "name": "vocab-matcher",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "@google/genai": "^2.14.0"
+  },
+  "devDependencies": {
+    "vercel": "^58.4.0"
+  }
+}

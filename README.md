@@ -1,86 +1,85 @@
-# Vocab Matcher 單字配對樂
+# Vocab Matcher
 
-> 一個可以換題庫的自學測驗小遊戲。
+Vocab Matcher 是一款依主題產生情境單字、用配對遊戲建立長期學習記憶的網頁應用程式。
 
-[![Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black)](https://yoga-vocab.vercel.app/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+## Live demo
 
-**[👉 線上體驗 Vocab Matcher](https://yoga-vocab.vercel.app/)**（內含 TOPIK II 韓檢 + 瑜珈解剖與日常生活英文兩套題庫）
+TODO: 加入正式展示網址。
 
-## 畫面預覽
+## Product screenshots
 
-| 筆記本主選單 | 0-Scroll 滿版配對 | 慶祝通關結算卡 |
-| :---: | :---: | :---: |
-| <img src="docs/screenshot-menu.png" width="240"> | <img src="docs/screenshot-match.png" width="240"> | <img src="docs/screenshot-result.png" width="240"> |
+TODO: 加入不含個人資料或機密資訊的產品截圖。
 
-> **提示**：手機瀏覽器開啟後點擊「加入主畫面」，即可作為獨立 PWA / App 形式執行，支援雙款極簡 Icon 切換。
+## Core features
 
-## 這是什麼 / 為什麼做
+- AI topic vocabulary generation
+- CEFR-adjusted explanations and examples
+- Domain-aware terminology
+- Accumulated topic decks
+- Device-local vocabulary memory
+- Known-word avoidance
+- Mastery and review tracking
+- Multi-context Vocabulary
+- Matching game and pronunciation
+- Context-aware favorites and wrong-answer review
 
-這個專案最初是我為了準備 TOPIK II 韓檢與 YTT 培訓而開發的自主學習工具。
+## Privacy
 
-在背單字過程中，我發現市面上的單字卡 App 介面往往無法針對需求對陣下藥。我需要的是一個垂直的單字學習、支援真人發音、能先預習／替換單字，且卡片能完全容納於手機單頁螢幕（Zero-Scroll 免往下滑動）的刷題工具。寫完之後發現，只要抽換內建的單字資料庫，就能瞬間變成任何語言或學科的配對小遊戲。
+單字牌組與學習紀錄只儲存在使用者自己的瀏覽器 localStorage。不同使用者不會看到彼此的資料；清除瀏覽器儲存空間可能移除所有學習紀錄。本版本沒有帳號同步功能。
 
-## 做一份自己的
+## Architecture
 
-只要簡單 3 個步驟，你就能擁有屬於自己的專屬單字配對 App：
+`Browser → Vercel Function (/api/generate) → Gemini`
 
-1. **Fork 本儲存庫**：點擊右上角的 Fork 按鈕複製一份至你的 GitHub。
-2. **修改題庫資料**：開啟 `index.html` 中的 `database` 物件，替換成你自己的單字、IPA、詞性與例句。
-3. **部署上線**：登入 [Vercel](https://vercel.com)，匯入剛剛 Fork 的 Repo，點擊 **Deploy** 即刻秒級上線！
+瀏覽器不會取得 Gemini API key；AI 請求由伺服器端函式代理。
 
-### 題目格式範例（可照抄）
+## Tech stack
 
-```json
-[
-  {
-    "word": "Spine",
-    "ipa": "/spaɪn/",
-    "pos": "n.",
-    "meaning": "脊椎",
-    "example": "Lengthen your spine as you inhale."
-  },
-  {
-    "word": "Vertebrae",
-    "ipa": "/ˈvɜːrtɪbriː/",
-    "pos": "n.",
-    "meaning": "脊椎骨",
-    "example": "Stack your vertebrae one by one."
-  },
-  {
-    "word": "Engage",
-    "ipa": "/ɪnˈɡeɪdʒ/",
-    "pos": "v.",
-    "meaning": "啟動肌肉",
-    "example": "Engage your core to maintain balance."
-  }
-]
+- HTML、JavaScript、Tailwind CSS
+- Vercel Functions
+- Google Gen AI SDK (`@google/genai`)
+- Gemini Flash
+- Browser localStorage、Web Speech API
+
+## Local setup
+
+1. 安裝 Node.js 20+ 與依賴：`npm install`
+2. 複製 `.env.example` 為 `.env.local`
+3. 在 `.env.local` 設定 `GEMINI_API_KEY`
+4. 啟動：`npx vercel dev`
+5. 開啟終端機顯示的本機網址
+
+## Environment variables
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-## 題庫格式說明
+此變數只可設定於伺服器環境，不可使用 `PUBLIC_`、`NEXT_PUBLIC_` 或 `VITE_` 前綴。
 
-| 欄位名稱 | 型態 | 必填 | 說明 |
-| --- | --- | :---: | --- |
-| `word` | String | ✅ | 正面主要語言（顯示於 Word Card 與預習卡，點擊朗讀） |
-| `meaning` | String | ✅ | 背面對應翻譯（顯示於 Meaning Card，用於配對驗證） |
-| `ipa` | String | — | 音標或發音標註（顯示於預習卡與複習圖書館） |
-| `pos` | String | — | 詞性標籤（如 n., v., adj., 名, 動） |
-| `example` | String | — | 實用情境例句 |
+## Vercel deployment
 
-## 本機開發
+1. 將專案匯入 Vercel。
+2. 在 Project Settings → Environment Variables 新增 `GEMINI_API_KEY`。
+3. 完成測試後再由專案維護者部署。
 
-本專案採零依賴（Zero-dependency）純前端架構，無需安裝 Node.js 或任何建置套件。
+## Known limitations
 
-```bash
-git clone https://github.com/your-username/vocab-matcher.git
-cd vocab-matcher
-# 直接使用瀏覽器開啟 index.html 即可開始開發！
-```
+- 學習紀錄不會跨裝置同步。
+- 無帳號、雲端備份或完整伺服器端 rate limiting。
+- AI 內容仍可能需要人工判斷。
+- 瀏覽器語音品質依裝置與已安裝語音而異。
+- 刪除 topic 會移除該裝置上的牌組、context、收藏與複習項目。字詞若仍有其他 context，word-level `seenCount`、`correctCount`、`wrongCount` 與 mastery 會完整保留，不會依 context 回推扣除。
 
-## 技術棧
+## Roadmap
 
-HTML5 · Tailwind CSS (CDN) · Vanilla JavaScript · Web Speech API · Web Audio API · HTML5 Canvas · Google Fonts
+- 可選的帳號同步與資料匯出
+- 更完整的複習排程與無障礙測試
+
+## Author / portfolio
+
+TODO: 加入作者姓名與作品集連結。
 
 ## License
 
-[MIT License](LICENSE)
+尚未選定開源授權，請參閱 [LICENSE.md](LICENSE.md)。

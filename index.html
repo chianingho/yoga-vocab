@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vocab Matcher</title>
+    <meta name="description" content="Generate practical, context-aware vocabulary decks and build lasting language memory.">
+    <meta property="og:title" content="Vocab Matcher">
+    <meta property="og:description" content="AI vocabulary generation, matching practice, and device-local learning memory.">
 
     <!-- Google Fonts: DM Serif Display, Inter, Caveat, Noto Sans TC -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -214,6 +217,44 @@
                 <button onclick="setSegment('wrong')" id="seg-wrong" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">錯題複習 <span id="wrong-count-badge" class="text-[10px] bg-[#E65A5A] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
             </div>
 
+            <div class="bg-white border border-[#D9D3C8] rounded-[16px] p-4 shadow-level1 space-y-3.5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold text-base text-[#355C7D]">AI Vocabulary Generator</h3>
+                        <p class="meta-text">依主題建立專屬單字牌組</p>
+                    </div>
+                    <span class="font-handwriting text-xl text-[#F67280] font-bold">Create!</span>
+                </div>
+                <form id="ai-generator-form" class="space-y-3" novalidate>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="meta-text">目標語言
+                            <select id="ai-language" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
+                                <option>English</option><option>German</option><option>French</option><option>Spanish</option><option>Italian</option><option>Japanese</option><option>Korean</option>
+                            </select>
+                        </label>
+                        <label class="meta-text">CEFR 程度
+                            <select id="ai-level" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
+                                <option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option><option>C2</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="grid grid-cols-[1fr_92px] gap-2.5">
+                        <label class="meta-text">主題
+                            <input id="ai-topic" type="text" maxlength="120" required placeholder="例如：Jewelry auction" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] placeholder:text-[#777777] focus:outline-none focus:border-[#355C7D]">
+                        </label>
+                        <label class="meta-text">單字數
+                            <select id="ai-count" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
+                                <option>10</option><option selected>20</option><option>30</option><option>50</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p id="ai-generator-error" class="hidden text-xs text-[#E65A5A]" role="alert"></p>
+                    <button id="ai-generate-button" type="submit" class="w-full py-3 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
+                        Generate Deck
+                    </button>
+                </form>
+            </div>
+
             <div id="module-cards-container" class="space-y-3.5">
                 <!-- Module Cards Dynamic Insertion -->
             </div>
@@ -339,6 +380,20 @@
                         <span class="text-[#777777]">Wrong Words Recorded</span>
                         <span id="profile-wrong-count" class="font-bold text-[#E65A5A]">0 Words</span>
                     </div>
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <div class="text-center p-2 bg-[#FFFDF8] rounded-xl border border-[#ECE7DE]">
+                            <span class="meta-text block">Total Vocabulary</span>
+                            <span id="profile-memory-total" class="font-bold text-[#355C7D]">0</span>
+                        </div>
+                        <div class="text-center p-2 bg-[#FFFDF8] rounded-xl border border-[#ECE7DE]">
+                            <span class="meta-text block">Mastered Words</span>
+                            <span id="profile-memory-mastered" class="font-bold text-[#6CC6A6]">0</span>
+                        </div>
+                        <button type="button" onclick="openSmartReviewQueue()" class="text-center p-2 bg-[#FFFDF8] rounded-xl border border-[#ECE7DE] hover:border-[#355C7D] active:scale-[0.98] transition" aria-label="Open Need Review queue">
+                            <span class="meta-text block">Need Review</span>
+                            <span id="profile-memory-review" class="font-bold text-[#F67280]">0</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -366,6 +421,18 @@
         </section>
 
     </main>
+
+    <div id="delete-topic-dialog" class="hidden fixed inset-0 z-50 bg-[#355C7D]/35 backdrop-blur-sm px-5 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="delete-topic-title">
+        <div class="w-full max-w-sm bg-white rounded-[20px] border border-[#D9D3C8] p-5 shadow-level2">
+            <h2 id="delete-topic-title" class="font-display text-xl text-[#355C7D]">Delete Topic?</h2>
+            <p id="delete-topic-message" class="text-sm text-[#2D3748] mt-2"></p>
+            <p class="meta-text mt-2">This removes the deck, generated contexts, favorites, and review items from this device. Other topics will remain.</p>
+            <div class="flex justify-end gap-2 mt-5">
+                <button type="button" onclick="cancelDeleteTopic()" class="px-4 py-2 rounded-xl border border-[#D9D3C8] text-sm font-semibold text-[#355C7D]">Cancel</button>
+                <button type="button" onclick="confirmDeleteTopic()" class="px-4 py-2 rounded-xl bg-[#E65A5A] text-white text-sm font-semibold">Delete</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Bottom Navigation Bar -->
     <nav class="h-[64px] bg-[#FFFDF8]/95 backdrop-blur-md border-t border-[#ECE7DE] fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 flex items-center justify-around px-2">
@@ -426,498 +493,21 @@
             }
         }
 
-        // 1. 瑜珈解剖與口令 150 精選單字庫
-        const yogaData = [
-            { word: 'Spine', ipa: '/spaɪn/', pos: 'n.', meaning: '脊椎', example: 'Lengthen your spine as you inhale.' },
-            { word: 'Vertebrae', ipa: '/ˈvɜːrtɪbriː/', pos: 'n.', meaning: '脊椎骨', example: 'Stack your vertebrae one by one.' },
-            { word: 'Cervical Spine', ipa: '/ˈsɜːrvɪkəl/', pos: 'n.', meaning: '頸椎', example: 'Keep your cervical spine neutral.' },
-            { word: 'Thoracic Spine', ipa: '/θəˈræsɪk/', pos: 'n.', meaning: '胸椎', example: 'Find extension through thoracic spine.' },
-            { word: 'Lumbar Spine', ipa: '/ˈlʌmbər/', pos: 'n.', meaning: '腰椎', example: 'Protect your lumbar spine in backbends.' },
-            { word: 'Sacrum', ipa: '/ˈseɪkrəm/', pos: 'n.', meaning: '薦骨', example: 'Keep your sacrum heavy on the mat.' },
-            { word: 'Coccyx', ipa: '/ˈkɑːksɪks/', pos: 'n.', meaning: '尾骨', example: 'Lengthen coccyx down toward heels.' },
-            { word: 'Pelvis', ipa: '/ˈpɛlvɪs/', pos: 'n.', meaning: '骨盆', example: 'Square your pelvis to the front.' },
-            { word: 'Sit Bones', ipa: '/sɪt boʊnz/', pos: 'n.', meaning: '坐骨', example: 'Root down firmly through sit bones.' },
-            { word: 'Ribcage', ipa: '/ˈrɪbkeɪdʒ/', pos: 'n.', meaning: '肋骨', example: 'Knit your ribcage gently in.' },
-            { word: 'Sternum', ipa: '/ˈstɜːrnəm/', pos: 'n.', meaning: '胸骨', example: 'Lift your sternum toward ceiling.' },
-            { word: 'Clavicle', ipa: '/ˈklævɪkəl/', pos: 'n.', meaning: '鎖骨', example: 'Broaden across your clavicles.' },
-            { word: 'Scapula', ipa: '/ˈskæpjələ/', pos: 'n.', meaning: '肩胛骨', example: 'Draw scapulae down your back.' },
-            { word: 'Humerus', ipa: '/ˈhjuːmərəs/', pos: 'n.', meaning: '肱骨', example: 'Rotate humerus head externally.' },
-            { word: 'Radius', ipa: '/ˈreɪdiəs/', pos: 'n.', meaning: '橈骨', example: 'Press through the radial thumb side.' },
-            { word: 'Ulna', ipa: '/ˈʌlnə/', pos: 'n.', meaning: '尺骨', example: 'Balance weight along the ulna.' },
-            { word: 'Femur', ipa: '/ˈfiːmər/', pos: 'n.', meaning: '股骨', example: 'Plug femur head into hip socket.' },
-            { word: 'Tibia', ipa: '/ˈtɪbiə/', pos: 'n.', meaning: '脛骨', example: 'Keep tibia perpendicular to floor.' },
-            { word: 'Fibula', ipa: '/ˈfɪbjələ/', pos: 'n.', meaning: '腓骨', example: 'Engage muscles along outer fibula.' },
-            { word: 'Patella', ipa: '/pəˈtɛlə/', pos: 'n.', meaning: '膝蓋骨', example: 'Lift patella by contracting quads.' },
-            { word: 'Ankle Joint', ipa: '/ˈæŋkəl/', pos: 'n.', meaning: '腳踝關節', example: 'Circle your ankle joint gently.' },
-            { word: 'Hip Flexors', ipa: '/hɪp ˈflɛksərz/', pos: 'n.', meaning: '髖屈肌', example: 'Open hip flexors in low lunge.' },
-            { word: 'Iliopsoas', ipa: '/ˌɪlioʊˈsoʊəs/', pos: 'n.', meaning: '腰髂肌', example: 'Release deep tension in iliopsoas.' },
-            { word: 'Psoas Major', ipa: '/ˈsoʊəs/', pos: 'n.', meaning: '腰大肌', example: 'Psoas connects spine to femur.' },
-            { word: 'Quadriceps', ipa: '/ˈkwɑːdrɪsɛps/', pos: 'n.', meaning: '股四頭肌', example: 'Firm quadriceps to protect knees.' },
-            { word: 'Hamstrings', ipa: '/ˈhæmstrɪŋz/', pos: 'n.', meaning: '膕繩肌', example: 'Stretch hamstrings in forward fold.' },
-            { word: 'Gluteus Maximus', ipa: '/ˈɡluːtiəs/', pos: 'n.', meaning: '臀大肌', example: 'Squeeze glutes gently in bridge.' },
-            { word: 'Gluteus Medius', ipa: '/ˈmiːdiəs/', pos: 'n.', meaning: '臀中肌', example: 'Stabilize standing leg with glute medius.' },
-            { word: 'Adductors', ipa: '/əˈdʌktərz/', pos: 'n.', meaning: '內收肌群', example: 'Hug adductors tightly to midline.' },
-            { word: 'Abductors', ipa: '/æbˈdʌktərz/', pos: 'n.', meaning: '外展肌群', example: 'Engage outer hip abductors.' },
-            { word: 'IT Band', ipa: '/aɪ tiː bænd/', pos: 'n.', meaning: '髂脛束', example: 'Lengthen outer thigh along IT band.' },
-            { word: 'Gastrocnemius', ipa: '/ˌɡæstrɒkˈniːmiəs/', pos: 'n.', meaning: '腓腸肌', example: 'Press heel down to stretch calf.' },
-            { word: 'Soleus', ipa: '/ˈsoʊliəs/', pos: 'n.', meaning: '比目魚肌', example: 'Bend knees slightly to target soleus.' },
-            { word: 'Plantar Fascia', ipa: '/ˈplæntər/', pos: 'n.', meaning: '足底筋膜', example: 'Stretch plantar fascia in toe pose.' },
-            { word: 'Achilles Tendon', ipa: '/əˈkɪliːz/', pos: 'n.', meaning: '跟腱', example: 'Maintain length in Achilles tendon.' },
-            { word: 'Diaphragm', ipa: '/ˈdaɪəfræm/', pos: 'n.', meaning: '橫膈膜', example: 'Diaphragm descends on inhale.' },
-            { word: 'Intercostal', ipa: '/ˌɪntərˈkɑːstəl/', pos: 'n.', meaning: '肋間肌', example: 'Expand intercostal space.' },
-            { word: 'Rectus Abdominis', ipa: '/ˈrɛktəs/', pos: 'n.', meaning: '腹直肌', example: 'Engage rectus abdominis in plank.' },
-            { word: 'Transverse Abdominis', ipa: '/trænzˈvɜːrs/', pos: 'n.', meaning: '腹橫肌', example: 'Pull navel in for transverse abs.' },
-            { word: 'Obliques', ipa: '/əˈbliːks/', pos: 'n.', meaning: '腹斜肌', example: 'Twist deeply using obliques.' },
-            { word: 'Pelvic Floor', ipa: '/ˈpɛlvɪk flɔːr/', pos: 'n.', meaning: '骨盆底肌', example: 'Lift pelvic floor in Mula Bandha.' },
-            { word: 'Trapezius', ipa: '/trəˈpiːziəs/', pos: 'n.', meaning: '斜方肌', example: 'Relax upper trapezius away from ears.' },
-            { word: 'Rhomboids', ipa: '/ˈrɑːmbɔɪdz/', pos: 'n.', meaning: '菱形肌', example: 'Squeeze rhomboids to retract scapulae.' },
-            { word: 'Latissimus Dorsi', ipa: '/ləˈtɪsɪməs/', pos: 'n.', meaning: '背闊肌', example: 'Engage lats as you press hands down.' },
-            { word: 'Serratus Anterior', ipa: '/səˈreɪtəs/', pos: 'n.', meaning: '前鋸肌', example: 'Fire serratus anterior in arm balance.' },
-            { word: 'Erector Spinae', ipa: '/ɪˈrɛktər/', pos: 'n.', meaning: '豎脊肌', example: 'Erector spinae supports spinal posture.' },
-            { word: 'Quadratus Lumborum', ipa: '/kwɑːˈdreɪtəs/', pos: 'n.', meaning: '腰方肌', example: 'Lengthen QL muscle in side bend.' },
-            { word: 'Deltoid', ipa: '/ˈdɛltɔɪd/', pos: 'n.', meaning: '三角肌', example: 'Build endurance in deltoid muscles.' },
-            { word: 'Pectoralis Major', ipa: '/ˌpɛktəˈreɪlɪs/', pos: 'n.', meaning: '胸大肌', example: 'Open pectoralis major across chest.' },
-            { word: 'Piriformis', ipa: '/ˌpɪrɪˈfɔːrmɪs/', pos: 'n.', meaning: '梨狀肌', example: 'Stretch piriformis in pigeon pose.' },
-            { word: 'Rotator Cuff', ipa: '/roʊteɪtər kʌf/', pos: 'n.', meaning: '肩袖肌群', example: 'Stabilize shoulder with rotator cuff.' },
-            { word: 'Ligament', ipa: '/ˈlɪɡəmənt/', pos: 'n.', meaning: '韌帶', example: 'Protect joint ligaments from strain.' },
-            { word: 'Tendon', ipa: '/ˈtɛndən/', pos: 'n.', meaning: '肌腱', example: 'Tendons connect muscle to bone.' },
-            { word: 'Fascia', ipa: '/ˈfæʃiə/', pos: 'n.', meaning: '筋膜', example: 'Yin yoga targets deep connective fascia.' },
-            { word: 'Synovial Fluid', ipa: '/sɪˈnoʊviəl/', pos: 'n.', meaning: '滑液', example: 'Warmup hydrates joints with synovial fluid.' },
-            { word: 'Cartilage', ipa: '/ˈkɑːrtɪlɪdʒ/', pos: 'n.', meaning: '軟骨', example: 'Cartilage cushions joint surfaces.' },
-            { word: 'Intervertebral Disc', ipa: '/dɪsk/', pos: 'n.', meaning: '椎間盤', example: 'Decompress intervertebral discs.' },
-            { word: 'Anterior', ipa: '/ænˈtɪriər/', pos: 'adj.', meaning: '前側的', example: 'Lengthen the anterior body.' },
-            { word: 'Posterior', ipa: '/pɑːˈstɪriər/', pos: 'adj.', meaning: '後側的', example: 'Open the entire posterior chain.' },
-            { word: 'Lateral', ipa: '/ˈlætərəl/', pos: 'adj.', meaning: '外側/側向的', example: 'Find lateral flexion in spine.' },
-            { word: 'Medial', ipa: '/ˈmiːdiəl/', pos: 'adj.', meaning: '內側的', example: 'Rotate inner thighs medially.' },
-            { word: 'Proximal', ipa: '/ˈprɑːksɪməl/', pos: 'adj.', meaning: '近端的', example: 'Draw energy to proximal joint.' },
-            { word: 'Distal', ipa: '/ˈdɪstəl/', pos: 'adj.', meaning: '遠端的', example: 'Reach out to distal fingertips.' },
-            { word: 'Superior', ipa: '/suːˈpɪriər/', pos: 'adj.', meaning: '上方的', example: 'Lift superior part of sternum.' },
-            { word: 'Inferior', ipa: '/ɪnˈfɪriər/', pos: 'adj.', meaning: '下方的', example: 'Anchor inferior angle of scapula.' },
-            { word: 'Prone', ipa: '/proʊn/', pos: 'adj.', meaning: '俯臥的', example: 'Lie prone on mat for cobra.' },
-            { word: 'Supine', ipa: '/ˈsuːpaɪn/', pos: 'adj.', meaning: '仰臥的', example: 'Recline supine for savasana.' },
-            { word: 'Flexion', ipa: '/ˈflɛkʃən/', pos: 'n.', meaning: '屈曲', example: 'Hips go into flexion in fold.' },
-            { word: 'Extension', ipa: '/ɪkˈstɛnʃən/', pos: 'n.', meaning: '伸展', example: 'Spinal extension creates backbend.' },
-            { word: 'Abduction', ipa: '/æbˈdʌkʃən/', pos: 'n.', meaning: '外展', example: 'Leg abduction in warrior two.' },
-            { word: 'Adduction', ipa: '/əˈdʌkʃən/', pos: 'n.', meaning: '內收', example: 'Squeeze thighs for adduction.' },
-            { word: 'Protraction', ipa: '/proʊˈtrækʃən/', pos: 'n.', meaning: '前引/前凸', example: 'Protract scapulae in plank.' },
-            { word: 'Retraction', ipa: '/rɪˈtrækʃən/', pos: 'n.', meaning: '後縮/後收', example: 'Retract shoulder blades in cobra.' },
-            { word: 'Elevation', ipa: '/ˌɛlɪˈveɪʃən/', pos: 'n.', meaning: '上提', example: 'Avoid excessive shoulder elevation.' },
-            { word: 'Depression', ipa: '/dɪˈprɛʃən/', pos: 'n.', meaning: '下壓/沉肩', example: 'Find depression of shoulders.' },
-            { word: 'Pronation', ipa: '/proʊˈneɪʃən/', pos: 'n.', meaning: '旋前/趴掌', example: 'Press index knuckle in pronation.' },
-            { word: 'Supination', ipa: '/ˌsuːpɪˈneɪʃən/', pos: 'n.', meaning: '旋後/仰掌', example: 'Forearm supination turns palm up.' },
-            { word: 'Internal Rotation', ipa: '/roʊˈteɪʃən/', pos: 'n.', meaning: '內旋', example: 'Spiral back thigh in internal rotation.' },
-            { word: 'External Rotation', ipa: '/roʊˈteɪʃən/', pos: 'n.', meaning: '外旋', example: 'Find external rotation in front hip.' },
-            { word: 'Circumduction', ipa: '/ˌsɜːrkəmˈdʌkʃən/', pos: 'n.', meaning: '環轉運動', example: 'Circle arm in full circumduction.' },
-            { word: 'Isometric', ipa: '/ˌaɪsəˈmɛtrɪk/', pos: 'adj.', meaning: '等長收縮的', example: 'Hold plank for isometric core strength.' },
-            { word: 'Isometric Contraction', ipa: '/kənˈtrækʃən/', pos: 'n.', meaning: '等長收縮', example: 'Maintain isometric contraction in legs.' },
-            { word: 'Isotonic', ipa: '/ˌaɪsəˈtɑːnɪk/', pos: 'adj.', meaning: '等張收縮的', example: 'Moving vinyasa uses isotonic work.' },
-            { word: 'Concentric', ipa: '/kənˈsɛntrɪk/', pos: 'adj.', meaning: '向心收縮的', example: 'Quadriceps contract concentrically.' },
-            { word: 'Eccentric', ipa: '/ɪkˈsɛntrɪk/', pos: 'adj.', meaning: '離心收縮的', example: 'Lower slowly for eccentric control.' },
-            { word: 'Reciprocal Inhibition', ipa: '/ɪn hɪˈbɪʃən/', pos: 'n.', meaning: '交互抑制', example: 'Quads contract to relax hamstrings.' },
-            { word: 'Proprioception', ipa: '/ˌproʊprioʊˈsɛpʃən/', pos: 'n.', meaning: '本體感覺', example: 'Balancing builds body proprioception.' },
-            { word: 'Interoception', ipa: '/ˌɪntərəˈsɛpʃən/', pos: 'n.', meaning: '內受覺', example: 'Tune into deep interoception.' },
-            { word: 'Kinetic Chain', ipa: '/kɪˈnɛtɪk/', pos: 'n.', meaning: '動力鏈', example: 'Energy transfers up kinetic chain.' },
-            { word: 'Plumb Line', ipa: '/plʌm laɪn/', pos: 'n.', meaning: '鉛垂線/對齊線', example: 'Check ear-to-ankle plumb line.' },
-            { word: 'Neutral Spine', ipa: '/ˈnuːtrəl/', pos: 'n.', meaning: '中立脊椎', example: 'Maintain natural curves in neutral spine.' },
-            { word: 'Engage', ipa: '/ɪnˈɡeɪdʒ/', pos: 'v.', meaning: '啟動肌肉', example: 'Engage your core before moving.' },
-            { word: 'Release', ipa: '/rɪˈliːs/', pos: 'v.', meaning: '放鬆/釋放', example: 'Release any jaw tension.' },
-            { word: 'Lengthen', ipa: '/ˈlɛŋθən/', pos: 'v.', meaning: '延伸拉長', example: 'Lengthen spine with each inhale.' },
-            { word: 'Ground Down', ipa: '/ɡraʊnd/', pos: 'v.', meaning: '向下扎根', example: 'Ground down into four corners of feet.' },
-            { word: 'Root Down', ipa: '/ruːt/', pos: 'v.', meaning: '深根穩固', example: 'Root down to rise tall.' },
-            { word: 'Tuck', ipa: '/tʌk/', pos: 'v.', meaning: '內收/微捲', example: 'Tuck tailbone slightly under.' },
-            { word: 'Broaden', ipa: '/ˈbrɔːdən/', pos: 'v.', meaning: '展寬', example: 'Broaden collarbones open wide.' },
-            { word: 'Soften', ipa: '/ˈsɔːfən/', pos: 'v.', meaning: '放柔/軟化', example: 'Soften ribs toward navel.' },
-            { word: 'Stack', ipa: '/stæk/', pos: 'v.', meaning: '垂直堆疊', example: 'Stack shoulders over wrists.' },
-            { word: 'Hinge', ipa: '/hɪndʒ/', pos: 'v.', meaning: '髖關節摺疊', example: 'Hinge forward from hips.' },
-            { word: 'Spiral', ipa: '/ˈspaɪrəl/', pos: 'v.', meaning: '螺旋旋轉', example: 'Spiral inner thighs backward.' },
-            { word: 'Hug to Midline', ipa: '/hʌɡ/', pos: 'v.', meaning: '夾向中線', example: 'Hug inner ankles to midline.' },
-            { word: 'Micro-bend', ipa: '/ˈmaɪkroʊ/', pos: 'v.', meaning: '微彎不鎖死', example: 'Keep a micro-bend in elbows.' },
-            { word: 'Knit Ribs', ipa: '/nɪt/', pos: 'v.', meaning: '收攏肋骨', example: 'Knit front ribs gently together.' },
-            { word: 'Activate', ipa: '/ˈæktɪveɪt/', pos: 'v.', meaning: '激活/發力', example: 'Activate feet by fanning toes.' },
-            { word: 'Inhale', ipa: '/ɪnˈheɪl/', pos: 'v.', meaning: '吸氣', example: 'Inhale to fill chest with air.' },
-            { word: 'Exhale', ipa: '/ɛksˈheɪl/', pos: 'v.', meaning: '吐氣', example: 'Exhale fully to empty lungs.' },
-            { word: 'Surrender', ipa: '/səˈrɛndər/', pos: 'v.', meaning: '臣服/放鬆', example: 'Surrender weight into floor.' },
-            { word: 'Anchor', ipa: '/ˈæŋkər/', pos: 'v.', meaning: '錨定/固定', example: 'Anchor back heel to floor.' },
-            { word: 'Stabilize', ipa: '/ˈsteɪbəlaɪz/', pos: 'v.', meaning: '穩定', example: 'Stabilize hips before lifting leg.' },
-            { word: 'Mobilize', ipa: '/ˈmoʊbəlaɪz/', pos: 'v.', meaning: '活動/動員', example: 'Mobilize thoracic spine twists.' },
-            { word: 'Decompress', ipa: '/ˌdiːkəmˈprɛs/', pos: 'v.', meaning: '減壓減負', example: 'Decompress lumbar vertebrae.' },
-            { word: 'Integrate', ipa: '/ˈɪntɪɡreɪt/', pos: 'v.', meaning: '整合連結', example: 'Integrate arm bone into socket.' },
-            { word: 'Center', ipa: '/ˈsɛntər/', pos: 'v.', meaning: '找回中心', example: 'Center your mind on breath.' },
-            { word: 'Elongate', ipa: '/ɪˈlɔːŋɡeɪt/', pos: 'v.', meaning: '拉長/延伸', example: 'Elongate side waist line.' },
-            { word: 'Unwind', ipa: '/ʌnˈwaɪnd/', pos: 'v.', meaning: '解開/舒緩', example: 'Unwind spine out of twist.' },
-            { word: 'Press', ipa: '/prɛs/', pos: 'v.', meaning: '往下按壓', example: 'Press mat away with hands.' },
-            { word: 'Squeeze', ipa: '/skwiːz/', pos: 'v.', meaning: '夾緊/收縮', example: 'Squeeze blocks between thighs.' },
-            { word: 'Pranayama', ipa: '/prɑːnɑːˈjɑːmə/', pos: 'n.', meaning: '調息/呼吸法', example: 'Begin session with Pranayama.' },
-            { word: 'Ujjayi', ipa: '/uːˈdʒaɪ/', pos: 'n.', meaning: '勝利呼吸法', example: 'Maintain Ujjayi breath ocean sound.' },
-            { word: 'Drishti', ipa: '/ˈdrɪʃti/', pos: 'n.', meaning: '凝視點', example: 'Fix your Drishti on stationary point.' },
-            { word: 'Vinyasa', ipa: '/vɪnˈjɑːsə/', pos: 'n.', meaning: '流瑜珈/連貫體位', example: 'Flow through a smooth Vinyasa.' },
-            { word: 'Savasana', ipa: '/ʃɑːˈvɑːsənə/', pos: 'n.', meaning: '大休息/大屍式', example: 'Rest deeply in Savasana.' },
-            { word: 'Bandha', ipa: '/ˈbʌndə/', pos: 'n.', meaning: '能量鎖/收束法', example: 'Engage internal Bandhas for stability.' },
-            { word: 'Mula Bandha', ipa: '/ˈmuːlə/', pos: 'n.', meaning: '根鎖/會陰收束', example: 'Lift Mula Bandha at pelvic base.' },
-            { word: 'Uddiyana Bandha', ipa: '/uːdiːˈjɑːnə/', pos: 'n.', meaning: '飛起鎖/腹收束', example: 'Draw belly back for Uddiyana.' },
-            { word: 'Jalandhara Bandha', ipa: '/dʒɑːlənˈdɑːrə/', pos: 'n.', meaning: '喉鎖/頸收束', example: 'Tuck chin for Jalandhara Bandha.' },
-            { word: 'Asana', ipa: '/ˈɑːsənə/', pos: 'n.', meaning: '瑜珈體位', example: 'Find comfort in each Asana.' },
-            { word: 'Chakra', ipa: '/ˈtʃʌkrə/', pos: 'n.', meaning: '脈輪/能量中心', example: 'Balance seven primary Chakras.' },
-            { word: 'Tadasana', ipa: '/tɑːˈdɑːsənə/', pos: 'n.', meaning: '山式', example: 'Stand upright in Tadasana.' },
-            { word: 'Chaturanga', ipa: '/tʃætʊˈrʌŋɡə/', pos: 'n.', meaning: '四柱臥撐', example: 'Lower down to Chaturanga.' },
-            { word: 'Bhujangasana', ipa: '/buːdʒæŋˈɡɑːsənə/', pos: 'n.', meaning: '眼鏡蛇式', example: 'Inhale into Bhujangasana cobra.' },
-            { word: 'Adho Mukha Svanasana', ipa: '/ˈɑːdoʊ/', pos: 'n.', meaning: '下犬式', example: 'Lift hips to Downward Dog.' },
-            { word: 'Trikonasana', ipa: '/trɪkoʊˈnɑːsənə/', pos: 'n.', meaning: '三角式', example: 'Reach extended side in Trikonasana.' },
-            { word: 'Virabhadrasana', ipa: '/vɪrəbɑːˈdrɑːsənə/', pos: 'n.', meaning: '戰士式', example: 'Step wide into Virabhadrasana.' },
-            { word: 'Balasana', ipa: '/bɑːˈlɑːsənə/', pos: 'n.', meaning: '嬰兒式', example: 'Rest forehead down in Balasana.' },
-            { word: 'Uttanasana', ipa: '/uːtɑːˈnɑːsənə/', pos: 'n.', meaning: '站立前彎', example: 'Fold hips deep in Uttanasana.' },
-            { word: 'Alignment', ipa: '/əˈlaɪnmənt/', pos: 'n.', meaning: '正位/對齊', example: 'Check joint alignment in pose.' },
-            { word: 'Sequencing', ipa: '/ˈsiːkwənsɪŋ/', pos: 'n.', meaning: '編排/動作排序', example: 'Logical sequencing prepares body.' },
-            { word: 'Adjustment', ipa: '/əˈdʒʌstmənt/', pos: 'n.', meaning: '手法微調/輔助', example: 'Receive subtle manual adjustment.' },
-            { word: 'Counterpose', ipa: '/ˈkaʊntərpoʊz/', pos: 'n.', meaning: '反向動作/補償', example: 'Child pose is backbend counterpose.' },
-            { word: 'Restorative', ipa: '/rɪˈstɔːrətɪv/', pos: 'adj.', meaning: '修復放鬆的', example: 'Restorative yoga uses props.' },
-            { word: 'Inversion', ipa: '/ɪnˈvɜːrʒən/', pos: 'n.', meaning: '倒立/倒置體位', example: 'Heart is higher than head in inversion.' },
-            { word: 'Hyper-mobility', ipa: '/ˈhaɪpər/', pos: 'n.', meaning: '關節過展/超伸', example: 'Protect hyper-mobility with muscle engagement.' },
-            { word: 'Prop', ipa: '/prɑːp/', pos: 'n.', meaning: '瑜珈輔具', example: 'Use block prop under hand.' },
-            { word: 'Strap', ipa: '/stræp/', pos: 'n.', meaning: '瑜珈繩', example: 'Loop strap around foot sole.' },
-            { word: 'Bolster', ipa: '/ˈboʊlstər/', pos: 'n.', meaning: '抱枕/長枕', example: 'Support back with soft bolster.' },
-            { word: 'Mindfulness', ipa: '/ˈmaɪndfʊlnəs/', pos: 'n.', meaning: '正念覺察', example: 'Practice mindfulness with movement.' },
-            { word: 'Intention', ipa: '/ɪnˈtɛnʃən/', pos: 'n.', meaning: '意圖/設定發願', example: 'Set intention for practice.' }
-        ];
 
-        // 2. 日常生活實用 150 精選單字庫
-        const dailyData = [
-            { word: 'Remote control', ipa: '/rɪˈmoʊt/', pos: 'n.', meaning: '遙控器', example: 'Pass me the remote control, please.' },
-            { word: 'Seasoning', ipa: '/ˈsiːzənɪŋ/', pos: 'n.', meaning: '調味料', example: 'Add some seasoning to the soup.' },
-            { word: 'Refrigerator', ipa: '/rɪˈfrɪdʒəreɪtər/', pos: 'n.', meaning: '冰箱', example: 'Put milk in refrigerator.' },
-            { word: 'Microwave', ipa: '/ˈmaɪkrəweɪv/', pos: 'n.', meaning: '微波爐', example: 'Heat food in microwave.' },
-            { word: 'Battery', ipa: '/ˈbætəri/', pos: 'n.', meaning: '電池', example: 'The clock needs a new battery.' },
-            { word: 'Receipt', ipa: '/rɪˈsiːt/', pos: 'n.', meaning: '收據', example: 'Keep receipt for returns.' },
-            { word: 'Sunscreen', ipa: '/ˈsʌnskriːn/', pos: 'n.', meaning: '防曬乳', example: 'Apply sunscreen before going out.' },
-            { word: 'Mosquito repellent', ipa: '/rɪˈpɛlənt/', pos: 'n.', meaning: '防蚊液', example: 'Spray repellent to avoid bites.' },
-            { word: 'Negotiate', ipa: '/nɪˈɡoʊʃieɪt/', pos: 'v.', meaning: '協商/議價', example: 'We can negotiate the price.' },
-            { word: 'Confident', ipa: '/ˈkɑːnfɪdənt/', pos: 'adj.', meaning: '自信的', example: 'She is confident in her work.' },
-            { word: 'Flexible', ipa: '/ˈflɛksəbəl/', pos: 'adj.', meaning: '有彈性的', example: 'My schedule is quite flexible.' },
-            { word: 'Blender', ipa: '/ˈblɛndər/', pos: 'n.', meaning: '果汁機', example: 'Blend fruits in blender.' },
-            { word: 'Toaster', ipa: '/ˈtoʊstər/', pos: 'n.', meaning: '烤麵包機', example: 'Put bread into toaster.' },
-            { word: 'Dishwasher', ipa: '/ˈdɪʃˌwɑːʃər/', pos: 'n.', meaning: '洗碗機', example: 'Load dirty plates into dishwasher.' },
-            { word: 'Thermos', ipa: '/ˈθɜːrməs/', pos: 'n.', meaning: '保溫瓶', example: 'Keep coffee hot in thermos.' },
-            { word: 'Charger', ipa: '/ˈtʃɑːrdʒər/', pos: 'n.', meaning: '充電器', example: 'I forgot my phone charger.' },
-            { word: 'Power bank', ipa: '/ˈpaʊər bæŋk/', pos: 'n.', meaning: '行動電源', example: 'Charge phone with power bank.' },
-            { word: 'Reservation', ipa: '/ˌrɛzərˈveɪʃən/', pos: 'n.', meaning: '預訂/訂位', example: 'I made a dinner reservation.' },
-            { word: 'Destination', ipa: '/ˌdɛstɪˈneɪʃən/', pos: 'n.', meaning: '目的地', example: 'Arrived at our destination.' },
-            { word: 'Itinerary', ipa: '/aɪˈtɪnərɛri/', pos: 'n.', meaning: '旅遊行程', example: 'Check travel itinerary.' },
-            { word: 'Air conditioner', ipa: '/ˈkənˈdɪʃənər/', pos: 'n.', meaning: '冷氣機', example: 'Turn on the air conditioner.' },
-            { word: 'Earphones', ipa: '/ˈɪrfoʊnz/', pos: 'n.', meaning: '耳機', example: 'Plug in your earphones.' },
-            { word: 'Tissue', ipa: '/ˈtɪʃuː/', pos: 'n.', meaning: '面紙/衛生紙', example: 'Pass me a box of tissue.' },
-            { word: 'Scissors', ipa: '/ˈsɪzərz/', pos: 'n.', meaning: '剪刀', example: 'Use scissors to cut paper.' },
-            { word: 'Scooter', ipa: '/ˈskuːtər/', pos: 'n.', meaning: '機車/速克達', example: 'He rides a scooter to work.' },
-            { word: 'Helmet', ipa: '/ˈhɛlmɪt/', pos: 'n.', meaning: '安全帽', example: 'Wear a helmet for safety.' },
-            { word: 'Currency', ipa: '/ˈkɜːrənsi/', pos: 'n.', meaning: '貨幣/外幣', example: 'Exchange currency at airport.' },
-            { word: 'Boarding pass', ipa: '/ˈbɔːrdɪŋ pæs/', pos: 'n.', meaning: '登機證', example: 'Show boarding pass at gate.' },
-            { word: 'Luggage', ipa: '/ˈlʌɡɪdʒ/', pos: 'n.', meaning: '行李', example: 'Claim your luggage at carousel.' },
-            { word: 'Souvenir', ipa: '/ˌsuːvəˈnɪr/', pos: 'n.', meaning: '紀念品', example: 'Buy souvenirs for friends.' },
-            { word: 'Pharmacy', ipa: '/ˈfɑːrməsi/', pos: 'n.', meaning: '藥局', example: 'Get medicine at local pharmacy.' },
-            { word: 'Supermarket', ipa: '/ˈsuːpərmɑːrkɪt/', pos: 'n.', meaning: '超級市場', example: 'Buy groceries at supermarket.' },
-            { word: 'Appointment', ipa: '/əˈpɔɪntmənt/', pos: 'n.', meaning: '預約/約會', example: 'I have a doctor appointment.' },
-            { word: 'Experience', ipa: '/ɪkˈspɪriəns/', pos: 'n.', meaning: '經驗/體驗', example: 'Travel gives rich experience.' },
-            { word: 'Discount', ipa: '/ˈdɪskaʊnt/', pos: 'n.', meaning: '折扣', example: 'Ask for a student discount.' },
-            { word: 'Schedule', ipa: '/ˈskɛdʒuːl/', pos: 'n.', meaning: '時間表/日程', example: 'Check today’s busy schedule.' },
-            { word: 'Deadline', ipa: '/ˈdɛdlaɪn/', pos: 'n.', meaning: '截止日期', example: 'Submit work before deadline.' },
-            { word: 'Password', ipa: '/ˈpæswɜːrd/', pos: 'n.', meaning: '密碼', example: 'Enter Wi-Fi password.' },
-            { word: 'Attachment', ipa: '/əˈtætʃmənt/', pos: 'n.', meaning: '郵件附件', example: 'Check the email attachment.' },
-            { word: 'Conversation', ipa: '/ˌkɑːnvərˈseɪʃən/', pos: 'n.', meaning: '對話', example: 'Start an easy conversation.' },
-            { word: 'Difference', ipa: '/ˈdɪfərəns/', pos: 'n.', meaning: '差異/差別', example: 'Spot the difference between them.' },
-            { word: 'Adventure', ipa: '/ædˈvɛntʃər/', pos: 'n.', meaning: '冒險/探險', example: 'Begin a new life adventure.' },
-            { word: 'Background', ipa: '/ˈbækɡraʊnd/', pos: 'n.', meaning: '背景', example: 'Beautiful mountain background.' },
-            { word: 'Budget', ipa: '/ˈbʌdʒɪt/', pos: 'n.', meaning: '預算', example: 'Plan travel within budget.' },
-            { word: 'Description', ipa: '/dɪˈskrɪpʃən/', pos: 'n.', meaning: '說明描述', example: 'Read product description.' },
-            { word: 'Environment', ipa: '/ɪnˈvaɪrənmənt/', pos: 'n.', meaning: '環境', example: 'Protect natural environment.' },
-            { word: 'Equipment', ipa: '/ɪˈkwɪpmənt/', pos: 'n.', meaning: '設備/器材', example: 'Check sports equipment.' },
-            { word: 'Instruction', ipa: '/ɪnˈstrʌkʃən/', pos: 'n.', meaning: '指示/說明書', example: 'Follow manual instruction.' },
-            { word: 'Knowledge', ipa: '/ˈnɑːlɪdʒ/', pos: 'n.', meaning: '知識', example: 'Gain practical knowledge.' },
-            { word: 'Performance', ipa: '/pərˈfɔːrməns/', pos: 'n.', meaning: '表演/效能', example: 'Enjoy live music performance.' },
-            { word: 'Quality', ipa: '/ˈkwɑːləti/', pos: 'n.', meaning: '品質/質量', example: 'High quality materials.' },
-            { word: 'Service', ipa: '/ˈsɜːrvɪs/', pos: 'n.', meaning: '服務', example: 'Great customer service.' },
-            { word: 'Strategy', ipa: '/ˈstrætədʒi/', pos: 'n.', meaning: '策略', example: 'Develop business strategy.' },
-            { word: 'Balcony', ipa: '/ˈbælkəni/', pos: 'n.', meaning: '陽台', example: 'Sit out on the balcony.' },
-            { word: 'Elevator', ipa: '/ˈɛlɪveɪtər/', pos: 'n.', meaning: '電梯', example: 'Take elevator to fifth floor.' },
-            { word: 'Escalator', ipa: '/ˈɛskəleɪtər/', pos: 'n.', meaning: '手扶梯', example: 'Stand on escalator right side.' },
-            { word: 'Pedestrian', ipa: '/pəˈdɛstriən/', pos: 'n.', meaning: '行人', example: 'Pedestrian crosswalk signal.' },
-            { word: 'Intersection', ipa: '/ˌɪntərˈsɛkʃən/', pos: 'n.', meaning: '十字路口', example: 'Turn left at intersection.' },
-            { word: 'Neighborhood', ipa: '/ˈneɪbərˌhʊd/', pos: 'n.', meaning: '社區/鄰里', example: 'Quiet and friendly neighborhood.' },
-            { word: 'Pillowcase', ipa: '/ˈpɪloʊkeɪs/', pos: 'n.', meaning: '枕頭套', example: 'Change clean pillowcase.' },
-            { word: 'Wardrobe', ipa: '/ˈwɔːrdroʊb/', pos: 'n.', meaning: '衣櫃', example: 'Hang jacket in wardrobe.' },
-            { word: 'Thermometer', ipa: '/θərˈmɑːmɪtər/', pos: 'n.', meaning: '體溫計', example: 'Measure fever with thermometer.' },
-            { word: 'First-aid kit', ipa: '/fɜːrst eɪd/', pos: 'n.', meaning: '急救箱', example: 'Keep a first-aid kit nearby.' },
-            { word: 'Detergent', ipa: '/dɪˈtɜːrdʒənt/', pos: 'n.', meaning: '洗衣精/清潔劑', example: 'Pour detergent into washer.' },
-            { word: 'Umbrella', ipa: '/ʌmˈbrɛlə/', pos: 'n.', meaning: '雨傘', example: 'Take umbrella on rainy day.' },
-            { word: 'Raincoat', ipa: '/ˈreɪnkoʊt/', pos: 'n.', meaning: '雨衣', example: 'Wear raincoat while riding.' },
-            { word: 'Wallet', ipa: '/ˈwɑːlɪt/', pos: 'n.', meaning: '皮夾', example: 'Keep cash in wallet.' },
-            { word: 'Keyring', ipa: '/ˈkiːrɪŋ/', pos: 'n.', meaning: '鑰匙圈', example: 'Attach house key to keyring.' },
-            { word: 'Document', ipa: '/ˈdɑːkjəmənt/', pos: 'n.', meaning: '文件', example: 'Sign official document.' },
-            { word: 'Contract', ipa: '/ˈkɑːntrækt/', pos: 'n.', meaning: '合約', example: 'Read apartment contract.' },
-            { word: 'Invoice', ipa: '/ˈɪnvɔɪs/', pos: 'n.', meaning: '發票/請款單', example: 'Send invoice to accounting.' },
-            { word: 'Ingredient', ipa: '/ɪnˈɡriːdiənt/', pos: 'n.', meaning: '食材/成分', example: 'Fresh salad ingredients.' },
-            { word: 'Recipe', ipa: '/ˈrɛsəpi/', pos: 'n.', meaning: '食譜', example: 'Follow baking recipe.' },
-            { word: 'Beverage', ipa: '/ˈbɛvərɪdʒ/', pos: 'n.', meaning: '飲料', example: 'Cold iced beverage.' },
-            { word: 'Pastry', ipa: '/ˈpeɪstri/', pos: 'n.', meaning: '糕點/西點', example: 'Fresh bakery pastry.' },
-            { word: 'Seafood', ipa: '/ˈsiːfuːd/', pos: 'n.', meaning: '海鮮', example: 'Enjoy fresh seafood dish.' },
-            { word: 'Dessert', ipa: '/dɪˈzɜːrt/', pos: 'n.', meaning: '甜點', example: 'Order chocolate dessert.' },
-            { word: 'Snack', ipa: '/snæk/', pos: 'n.', meaning: '零食/點心', example: 'Grab a healthy snack.' },
-            { word: 'Utensil', ipa: '/juːˈtɛnsəl/', pos: 'n.', meaning: '餐具/廚具', example: 'Kitchen cooking utensils.' },
-            { word: 'Napkin', ipa: '/ˈnæpkɪn/', pos: 'n.', meaning: '餐巾紙', example: 'Wipe hands with napkin.' },
-            { word: 'Tablecloth', ipa: '/ˈteɪbəlklɔːθ/', pos: 'n.', meaning: '桌布', example: 'Spread clean tablecloth.' },
-            { word: 'Furniture', ipa: '/ˈfɜːrnɪtʃər/', pos: 'n.', meaning: '家具', example: 'Modern wooden furniture.' },
-            { word: 'Apartment', ipa: '/əˈpɑːrtmənt/', pos: 'n.', meaning: '公寓', example: 'Rent a cozy apartment.' },
-            { word: 'Lease', ipa: '/liːs/', pos: 'n.', meaning: '租約', example: 'Sign one-year lease.' },
-            { word: 'Landlord', ipa: '/ˈlændlɔːrd/', pos: 'n.', meaning: '房東', example: 'Pay rent to landlord.' },
-            { word: 'Tenant', ipa: '/ˈtɛnənt/', pos: 'n.', meaning: '房客', example: 'New apartment tenant.' },
-            { word: 'Maintenance', ipa: '/ˈmeɪntənəns/', pos: 'n.', meaning: '維修/保養', example: 'Building maintenance team.' },
-            { word: 'Plumber', ipa: '/ˈplʌmər/', pos: 'n.', meaning: '水管工', example: 'Call plumber to fix leak.' },
-            { word: 'Electricity', ipa: '/ɪˌlɛkˈtrɪsəti/', pos: 'n.', meaning: '電力', example: 'Save home electricity bill.' },
-            { word: 'Utility', ipa: '/juːˈtɪləti/', pos: 'n.', meaning: '水電公用事業', example: 'Monthly utility bill.' },
-            { word: 'Insurance', ipa: '/ɪnˈʃʊrəns/', pos: 'n.', meaning: '保險', example: 'Health travel insurance.' },
-            { word: 'Policy', ipa: '/ˈpɑːləsi/', pos: 'n.', meaning: '政策/保單', example: 'Company return policy.' },
-            { word: 'Claim', ipa: '/kleɪm/', pos: 'n.', meaning: '索賠/申報', example: 'File insurance claim.' },
-            { word: 'Refund', ipa: '/ˈriːfʌnd/', pos: 'n.', meaning: '退款', example: 'Request full refund.' },
-            { word: 'Exchange', ipa: '/ɪksˈtʃeɪndʒ/', pos: 'v.', meaning: '換貨/兌換', example: 'Exchange item for size.' },
-            { word: 'Guarantee', ipa: '/ˌɡærənˈtiː/', pos: 'n.', meaning: '保證/擔保', example: 'Two-year quality guarantee.' },
-            { word: 'Warranty', ipa: '/ˈwɔːrənti/', pos: 'n.', meaning: '保固書', example: 'Product under warranty.' },
-            { word: 'Delivery', ipa: '/dɪˈlɪvəri/', pos: 'n.', meaning: '外送/快遞', example: 'Express home delivery.' },
-            { word: 'Courier', ipa: '/ˈkʊriər/', pos: 'n.', meaning: '快遞員', example: 'Courier package arrival.' },
-            { word: 'Package', ipa: '/ˈpækɪdʒ/', pos: 'n.', meaning: '包裹', example: 'Receive heavy package.' },
-            { word: 'Tracking number', ipa: '/ˈtrækɪŋ/', pos: 'n.', meaning: '包裹追蹤碼', example: 'Check parcel tracking number.' },
-            { word: 'Signature', ipa: '/ˈsɪɡnətʃər/', pos: 'n.', meaning: '簽名', example: 'Require delivery signature.' },
-            { word: 'Feedback', ipa: '/ˈfiːdbæk/', pos: 'n.', meaning: '回饋意見', example: 'Give positive feedback.' },
-            { word: 'Review', ipa: '/rɪˈvjuː/', pos: 'n.', meaning: '評價/複習', example: 'Read online reviews.' },
-            { word: 'Rating', ipa: '/ˈreɪtɪŋ/', pos: 'n.', meaning: '星級評分', example: 'Five star high rating.' },
-            { word: 'Complaint', ipa: '/kəmˈpleɪnt/', pos: 'n.', meaning: '抱怨/客訴', example: 'Handle customer complaint.' },
-            { word: 'Solution', ipa: '/səˈluːʃən/', pos: 'n.', meaning: '解決方案', example: 'Find quick solution.' },
-            { word: 'Emergency', ipa: '/ɪˈmɜːrdʒənsi/', pos: 'n.', meaning: '緊急狀況', example: 'In case of emergency.' },
-            { word: 'Ambulance', ipa: '/ˈæmbjələns/', pos: 'n.', meaning: '救護車', example: 'Call an ambulance now.' },
-            { word: 'Prescription', ipa: '/prɪˈskrɪpʃən/', pos: 'n.', meaning: '處方箋', example: 'Doctor prescription note.' },
-            { word: 'Symptom', ipa: '/ˈsɪmptəm/', pos: 'n.', meaning: '症狀', example: 'Cold flu symptoms.' },
-            { word: 'Allergy', ipa: '/ˈælərdʒi/', pos: 'n.', meaning: '過敏', example: 'Peanut food allergy.' },
-            { word: 'Diagnosis', ipa: '/ˌdaɪəɡˈnoʊsɪs/', pos: 'n.', meaning: '診斷結果', example: 'Medical hospital diagnosis.' },
-            { word: 'Treatment', ipa: '/ˈtriːtmənt/', pos: 'n.', meaning: '治療', example: 'Effective clinic treatment.' },
-            { word: 'Medication', ipa: '/ˌmɛdɪˈkeɪʃən/', pos: 'n.', meaning: '藥物', example: 'Take daily medication.' },
-            { word: 'Ointment', ipa: '/ˈɔɪntmənt/', pos: 'n.', meaning: '藥膏', example: 'Apply skin ointment.' },
-            { word: 'Bandage', ipa: '/ˈbændɪdʒ/', pos: 'n.', meaning: '繃帶/OK繃', example: 'Wrap arm with bandage.' },
-            { word: 'Disinfectant', ipa: '/ˌdɪsɪnˈfɛktənt/', pos: 'n.', meaning: '消毒劑', example: 'Use alcohol disinfectant.' },
-            { word: 'Hand sanitizer', ipa: '/ˈsænɪtaɪzər/', pos: 'n.', meaning: '洗手凝膠', example: 'Clean hands with sanitizer.' },
-            { word: 'Passport', ipa: '/ˈpæspɔːrt/', pos: 'n.', meaning: '護照', example: 'Renew valid passport.' },
-            { word: 'Customs', ipa: '/ˈkʌstəmz/', pos: 'n.', meaning: '海關', example: 'Pass airport customs.' },
-            { word: 'Immigration', ipa: '/ˌɪmɪˈɡreɪʃən/', pos: 'n.', meaning: '移民局/入境審查', example: 'Clear border immigration.' },
-            { word: 'Terminal', ipa: '/ˈtɜːrmənəl/', pos: 'n.', meaning: '航廈/終點站', example: 'Departure terminal 2.' },
-            { word: 'Shuttle', ipa: '/ˈʃʌtəl/', pos: 'n.', meaning: '接駁車', example: 'Hotel airport shuttle.' },
-            { word: 'Transfer', ipa: '/trænsˈfɜːr/', pos: 'v.', meaning: '轉乘/轉帳', example: 'Transfer subway line.' },
-            { word: 'Accommodation', ipa: '/əˌkɑːməˈdeɪʃən/', pos: 'n.', meaning: '住宿', example: 'Book hotel accommodation.' },
-            { word: 'Reception', ipa: '/rɪˈsɛpʃən/', pos: 'n.', meaning: '接待櫃檯', example: 'Check in at reception.' },
-            { word: 'Concierge', ipa: '/kɑːnsiˈɛərʒ/', pos: 'n.', meaning: '禮賓服務台', example: 'Ask concierge for directions.' },
-            { word: 'Sightseeing', ipa: '/ˈsaɪtsiːɪŋ/', pos: 'n.', meaning: '觀光', example: 'Go city sightseeing bus.' },
-            { word: 'Guide', ipa: '/ɡaɪd/', pos: 'n.', meaning: '導遊/指南', example: 'Local tour guide.' },
-            { word: 'Landmark', ipa: '/ˈlændmɑːrk/', pos: 'n.', meaning: '地標', example: 'Famous city landmark.' },
-            { word: 'Monument', ipa: '/ˈmɑːnjəmənt/', pos: 'n.', meaning: '紀念碑/遺跡', example: 'Historic war monument.' },
-            { word: 'Ticket', ipa: '/ˈtɪkɪt/', pos: 'n.', meaning: '門票/車票', example: 'Concert entrance ticket.' },
-            { word: 'Exhibition', ipa: '/ˌɛksɪˈbɪʃən/', pos: 'n.', meaning: '展覽', example: 'Art gallery exhibition.' },
-            { word: 'Gallery', ipa: '/ˈɡæləri/', pos: 'n.', meaning: '畫廊/美術館', example: 'Visit photo gallery.' },
-            { word: 'Admission', ipa: '/ədˈmɪʃən/', pos: 'n.', meaning: '門票費用/入場', example: 'Free admission ticket.' },
-            { word: 'Fare', ipa: '/fɛr/', pos: 'n.', meaning: '車資/票價', example: 'Pay bus transit fare.' },
-            { word: 'Platform', ipa: '/ˈplætfɔːrm/', pos: 'n.', meaning: '月台/平台', example: 'Train arrives platform 3.' },
-            { word: 'Delay', ipa: '/dɪˈleɪ/', pos: 'n.', meaning: '延誤/誤點', example: 'Flight weather delay.' },
-            { word: 'Cancellation', ipa: '/ˌkænsəˈleɪʃən/', pos: 'n.', meaning: '取消', example: 'Trip booking cancellation.' },
-            { word: 'Announcement', ipa: '/əˈnaʊnsmənt/', pos: 'n.', meaning: '廣播公告', example: 'Listen to gate announcement.' },
-            { word: 'Passenger', ipa: '/ˈpæsəndʒər/', pos: 'n.', meaning: '乘客', example: 'Flight onboard passengers.' },
-            { word: 'Improve', ipa: '/ɪmˈpruːv/', pos: 'v.', meaning: '改善/進步', example: 'Improve speaking skills.' },
-            { word: 'Concentrate', ipa: '/ˈkɑːnsəntreɪt/', pos: 'v.', meaning: '專心/集中', example: 'Concentrate on reading.' },
-            { word: 'Encourage', ipa: '/ɪnˈkɜːrɪdʒ/', pos: 'v.', meaning: '鼓勵', example: 'Encourage team members.' },
-            { word: 'Recognize', ipa: '/ˈrɛkəɡnaɪz/', pos: 'v.', meaning: '認出/承認', example: 'Recognize familiar face.' },
-            { word: 'Organize', ipa: '/ˈɔːrɡənaɪz/', pos: 'v.', meaning: '組織/整理', example: 'Organize desk files.' },
-            { word: 'Participate', ipa: '/pɑːrˈtɪsəpeɪt/', pos: 'v.', meaning: '參與', example: 'Participate in event.' },
-            { word: 'Translate', ipa: '/trænsˈleɪt/', pos: 'v.', meaning: '翻譯', example: 'Translate English text.' },
-            { word: 'Recommend', ipa: '/ˌrɛkəˈmɛnd/', pos: 'v.', meaning: '推薦', example: 'Recommend good dish.' }
-        ];
+        // Production starts without bundled vocabulary; generated decks are restored from localStorage.
+        const database = {};
 
-        // 3. TOPIK II 韓檢必背 150 精選單字庫
-        const topikData = [
-            { word: '결과', ipa: '[결과]', pos: '名', meaning: '結果', example: '좋은 결과를 얻었습니다.' },
-            { word: '영향', ipa: '[영향]', pos: '名', meaning: '影響', example: '환경에 큰 영향을 미칩니다.' },
-            { word: '원인', ipa: '[원인]', pos: '名', meaning: '原因', example: '문제의 원인을 분석합니다.' },
-            { word: '과정', ipa: '[과정]', pos: '名', meaning: '過程', example: '학습 과정이 중요합니다.' },
-            { word: '강조하다', ipa: '[강조하다]', pos: '動', meaning: '強調', example: '안전을 다시 한번 강조했습니다.' },
-            { word: '해결하다', ipa: '[해결하다]', pos: '動', meaning: '解決', example: '갈등을 평화롭게 해결하다.' },
-            { word: '다양하다', ipa: '[다양하다]', pos: '形', meaning: '多樣', example: '다양한 의견을 수렴하다.' },
-            { word: '부족하다', ipa: '[부족하다]', pos: '形', meaning: '不足', example: '시간이 많이 부족합니다.' },
-            { word: '반드시', ipa: '[반드시]', pos: '副', meaning: '務必/一定', example: '약속을 반드시 지키세요.' },
-            { word: '오히려', ipa: '[오히려]', pos: '副', meaning: '反而', example: '오히려 더 좋은 기회가 되었다.' },
-            { word: '가치', ipa: '[가치]', pos: '名', meaning: '價值', example: '가치를 높이다.' },
-            { word: '기회', ipa: '[기회]', pos: '名', meaning: '機會', example: '좋은 기회를 잡다.' },
-            { word: '노력', ipa: '[노력]', pos: '名', meaning: '努力', example: '지속적인 노력이 필요하다.' },
-            { word: '상태', ipa: '[상태]', pos: '名', meaning: '狀態', example: '건강 상태를 점검하다.' },
-            { word: '정보', ipa: '[정보]', pos: '名', meaning: '資訊/情報', example: '유용한 정보를 제공하다.' },
-            { word: '주제', ipa: '[주제]', pos: '名', meaning: '主題', example: '토론의 주제를 정하다.' },
-            { word: '태도', ipa: '[태도]', pos: '名', meaning: '態度', example: '긍정적인 태도를 가지다.' },
-            { word: '특징', ipa: '[특징]', pos: '名', meaning: '特徵', example: '제품의 주요 특징입니다.' },
-            { word: '평균', ipa: '[평균]', pos: '名', meaning: '平均', example: '평균 점수가 상승했습니다.' },
-            { word: '현상', ipa: '[현상]', pos: '名', meaning: '現象', example: '자연 현상을 연구하다.' },
-            { word: '환경', ipa: '[환경]', pos: '名', meaning: '環境', example: '자연 환경을 보호하다.' },
-            { word: '활동', ipa: '[활동]', pos: '名', meaning: '活動', example: '다양한 봉사 활동.' },
-            { word: '경험', ipa: '[경험]', pos: '名', meaning: '經驗', example: '풍부한 경험을 쌓다.' },
-            { word: '교육', ipa: '[교육]', pos: '名', meaning: '教育', example: '교육 제도를 개선하다.' },
-            { word: '사회', ipa: '[사회]', pos: '名', meaning: '社會', example: '현대 사회의 문제점.' },
-            { word: '지식', ipa: '[지식]', pos: '名', meaning: '知識', example: '전문 지식을 습득하다.' },
-            { word: '목적', ipa: '[목적]', pos: '名', meaning: '目的', example: '방문의 목적을 밝히다.' },
-            { word: '방안', ipa: '[방안]', pos: '名', meaning: '方案', example: '해결 방안을 모색하다.' },
-            { word: '기술', ipa: '[기술]', pos: '名', meaning: '技術', example: '새로운 기술을 개발하다.' },
-            { word: '문제', ipa: '[문제]', pos: '名', meaning: '問題', example: '심각한 사회적 문제.' },
-            { word: '상황', ipa: '[상황]', pos: '名', meaning: '狀況/情況', example: '현재 상황을 파악하다.' },
-            { word: '의견', ipa: '[의견]', pos: '名', meaning: '意見', example: '서로의 의견을 나누다.' },
-            { word: '이유', ipa: '[이유]', pos: '名', meaning: '理由', example: '선택한 이유를 설명하다.' },
-            { word: '변화', ipa: '[변화]', pos: '名', meaning: '變化', example: '급격한 기후 변화.' },
-            { word: '연구', ipa: '[연구]', pos: '名', meaning: '研究', example: '과학 연구를 진행하다.' },
-            { word: '조사', ipa: '[조사]', pos: '名', meaning: '調查', example: '설문 조사를 실시하다.' },
-            { word: '대책', ipa: '[대책]', pos: '名', meaning: '對策', example: '안전 대책을 마련하다.' },
-            { word: '제도', ipa: '[제도]', pos: '名', meaning: '制度', example: '새로운 제도를 도입하다.' },
-            { word: '입장', ipa: '[입장]', pos: '名', meaning: '立場', example: '상대방의 입장을 이해하다.' },
-            { word: '가능성', ipa: '[가능성]', pos: '名', meaning: '可能性', example: '성공 가능성이 높다.' },
-            { word: '우려', ipa: '[우려]', pos: '名', meaning: '憂慮/擔憂', example: '부작용에 대한 우려.' },
-            { word: '한계', ipa: '[한계]', pos: '名', meaning: '極限/局限', example: '능력의 한계를 느끼다.' },
-            { word: '분석', ipa: '[분석]', pos: '名', meaning: '分析', example: '시장 데이터를 분석하다.' },
-            { word: '정책', ipa: '[정책]', pos: '名', meaning: '政策', example: '청년 지원 정책.' },
-            { word: '창의성', ipa: '[창의성]', pos: '名', meaning: '創意', example: '창의성을 키우다.' },
-            { word: '효과', ipa: '[효과]', pos: '名', meaning: '效果', example: '약의 효과가 나타나다.' },
-            { word: '역할', ipa: '[역할]', pos: '名', meaning: '角色/作用', example: '중요한 역할을 담당하다.' },
-            { word: '필요성', ipa: '[필요성]', pos: '名', meaning: '必要性', example: '개선의 필요성을 느낍니다.' },
-            { word: '중요성', ipa: '[중요성]', pos: '名', meaning: '重要性', example: '건강의 중요성을 강조하다.' },
-            { word: '관계', ipa: '[관계]', pos: '名', meaning: '關係', example: '좋은 관계를 유지하다.' },
-            { word: '관심', ipa: '[관심]', pos: '名', meaning: '關心', example: '환경 문제에 대한 관심.' },
-            { word: '관리', ipa: '[관리]', pos: '名', meaning: '管理', example: '건강을 철저히 관리하다.' },
-            { word: '발전', ipa: '[발전]', pos: '名', meaning: '發展', example: '경제 발전을 이루다.' },
-            { word: '문제점', ipa: '[문제점]', pos: '名', meaning: '問題點', example: '기존 제도의 문제점.' },
-            { word: '해결책', ipa: '[해결책]', pos: '名', meaning: '解決策', example: '명확한 해결책을 찾다.' },
-            { word: '혜택', ipa: '[혜택]', pos: '名', meaning: '惠澤/福利', example: '다양한 혜택을 받다.' },
-            { word: '손해', ipa: '[손해]', pos: '名', meaning: '損害/損失', example: '경제적 손해를 입다.' },
-            { word: '차이', ipa: '[차이]', pos: '名', meaning: '差異', example: '문화적 차이를 극복하다.' },
-            { word: '비교', ipa: '[비교]', pos: '名', meaning: '比較', example: '두 제품을 비교하다.' },
-            { word: '기준', ipa: '[기준]', pos: '名', meaning: '基準/標準', example: '평가 기준을 정하다.' },
-            { word: '대상', ipa: '[대상]', pos: '名', meaning: '對象', example: '청소년을 대상으로 실시하다.' },
-            { word: '범위', ipa: '[범위]', pos: '名', meaning: '範圍', example: '조사 범위를 넓히다.' },
-            { word: '수단', ipa: '[수단]', pos: '名', meaning: '手段', example: '교통 수단을 이용하다.' },
-            { word: '조건', ipa: '[조건]', pos: '名', meaning: '條件', example: '계약 조건을 확인하다.' },
-            { word: '현황', ipa: '[현황]', pos: '名', meaning: '現況', example: '산업 현황을 조사하다.' },
-            { word: '배경', ipa: '[배경]', pos: '名', meaning: '背景', example: '시대적 배경을 알아보다.' },
-            { word: '영향력', ipa: '[영향력]', pos: '名', meaning: '影響力', example: '사회적 영향력이 크다.' },
-            { word: '대중', ipa: '[대중]', pos: '名', meaning: '大眾', example: '대중의 사랑을 받다.' },
-            { word: '전문가', ipa: '[전문가]', pos: '名', meaning: '專家', example: '전문가의 자문을 구하다.' },
-            { word: '소비', ipa: '[소비]', pos: '名', meaning: '消費', example: '합리적인 소비 습관.' },
-            { word: '생산', ipa: '[생산]', pos: '名', meaning: '生產', example: '제품 생산량을 늘리다.' },
-            { word: '시장', ipa: '[시장]', pos: '名', meaning: '市場', example: '세계 시장을 개척하다.' },
-            { word: '경제', ipa: '[경제]', pos: '名', meaning: '經濟', example: '국가 경제를 활성화하다.' },
-            { word: '문화', ipa: '[문화]', pos: '名', meaning: '文化', example: '전통 문화를 보존하다.' },
-            { word: '역사', ipa: '[역사]', pos: '名', meaning: '歷史', example: '오랜 역사를 자랑하다.' },
-            { word: '개최하다', ipa: '[개최하다]', pos: '動', meaning: '舉辦/召開', example: '국제 회의를 개최하다.' },
-            { word: '고려하다', ipa: '[고려하다]', pos: '動', meaning: '考慮', example: '여러 조건을 고려하다.' },
-            { word: '담당하다', ipa: '[담당하다]', pos: '動', meaning: '擔當/負責', example: '중요 업무를 담당하다.' },
-            { word: '발생하다', ipa: '[발생하다]', pos: '動', meaning: '發生', example: '예상치 못한 사건이 발생하다.' },
-            { word: '선택하다', ipa: '[선택하다]', pos: '動', meaning: '選擇', example: '올바른 길을 선택하다.' },
-            { word: '유지하다', ipa: '[유지하다]', pos: '動', meaning: '維持', example: '적정 체중을 유지하다.' },
-            { word: '제시하다', ipa: '[제시하다]', pos: '動', meaning: '提示/提出', example: '새로운 의견을 제시하다.' },
-            { word: '결정하다', ipa: '[결정하다]', pos: '動', meaning: '決定', example: '최종 방안을 결정하다.' },
-            { word: '발전하다', ipa: '[발전하다]', pos: '動', meaning: '發展', example: '기술이 빠르게 발전하다.' },
-            { word: '전달하다', ipa: '[전달하다]', pos: '動', meaning: '傳達', example: '메시지를 정확히 전달하다.' },
-            { word: '표현하다', ipa: '[표현하다]', pos: '動', meaning: '表達', example: '감정을 솔직하게 표현하다.' },
-            { word: '참여하다', ipa: '[참여하다]', pos: '動', meaning: '參與', example: '행사에 적극 참여하다.' },
-            { word: '계획하다', ipa: '[계획하다]', pos: '動', meaning: '計劃', example: '여행 일정을 계획하다.' },
-            { word: '극복하다', ipa: '[극복하다]', pos: '動', meaning: '克服', example: '위기를 성공적으로 극복하다.' },
-            { word: '인정하다', ipa: '[인정하다]', pos: '動', meaning: '承認/認可', example: '자신의 실수를 인정하다.' },
-            { word: '작용하다', ipa: '[작용하다]', pos: '動', meaning: '作用/起作用', example: '중요한 요인으로 작용하다.' },
-            { word: '증가하다', ipa: '[증가하다]', pos: '動', meaning: '增加', example: '수출량이 급격히 증가하다.' },
-            { word: '감소하다', ipa: '[감소하다]', pos: '動', meaning: '減少', example: '인구가 지속적으로 감소하다.' },
-            { word: '제공하다', ipa: '[제공하다]', pos: '動', meaning: '提供', example: '유용한 서비스를 제공하다.' },
-            { word: '주장하다', ipa: '[주장하다]', pos: '動', meaning: '主張', example: '자신의 권리를 주장하다.' },
-            { word: '평가하다', ipa: '[평가하다]', pos: '動', meaning: '評價', example: '성과를 공정하게 평가하다.' },
-            { word: '확인하다', ipa: '[확인하다]', pos: '動', meaning: '確認', example: '예약 내역을 확인하다.' },
-            { word: '요구하다', ipa: '[요구하다]', pos: '動', meaning: '要求', example: '개선을 강하게 요구하다.' },
-            { word: '지적하다', ipa: '[지적하다]', pos: '動', meaning: '指出', example: '문제점을 정확히 지적하다.' },
-            { word: '포함하다', ipa: '[포함하다]', pos: '動', meaning: '包含', example: '세금을 포함한 금액.' },
-            { word: '형성하다', ipa: '[형성하다]', pos: '動', meaning: '形成', example: '올바른 가치관을 형성하다.' },
-            { word: '수용하다', ipa: '[수용하다]', pos: '動', meaning: '接受/包容', example: '타인의 의견을 수용하다.' },
-            { word: '동의하다', ipa: '[동의하다]', pos: '動', meaning: '同意', example: '제안에 동의합니다.' },
-            { word: '인식하다', ipa: '[인식하다]', pos: '動', meaning: '認識到', example: '심각성을 인식하다.' },
-            { word: '방지하다', ipa: '[방지하다]', pos: '動', meaning: '防止', example: '사고를 미리 방지하다.' },
-            { word: '개선하다', ipa: '[개선하다]', pos: '動', meaning: '改善', example: '근무 환경을 개선하다.' },
-            { word: '실천하다', ipa: '[실천하다]', pos: '動', meaning: '實踐', example: '약속을 몸소 실천하다.' },
-            { word: '소통하다', ipa: '[소통하다]', pos: '動', meaning: '溝通', example: '이웃과 원활히 소통하다.' },
-            { word: '성장하다', ipa: '[성장하다]', pos: '動', meaning: '成長', example: '기업이 크게 성장하다.' },
-            { word: '창출하다', ipa: '[창출하다]', pos: '動', meaning: '創造/產出', example: '일자리를 많이 창출하다.' },
-            { word: '추진하다', ipa: '[추진하다]', pos: '動', meaning: '推進/推動', example: '새 사업을 추진하다.' },
-            { word: '포기하다', ipa: '[포기하다]', pos: '動', meaning: '放棄', example: '꿈을 결코 포기하지 마라.' },
-            { word: '비판하다', ipa: '[비판하다]', pos: '動', meaning: '批判', example: '잘못된 정책을 비판하다.' },
-            { word: '낭비하다', ipa: '[낭비하다]', pos: '動', meaning: '浪費', example: '시간을 낭비하지 마세요.' },
-            { word: '절약하다', ipa: '[절약하다]', pos: '動', meaning: '節約', example: '에너지를 절약합시다.' },
-            { word: '무시하다', ipa: '[무시하다]', pos: '動', meaning: '無視/輕視', example: '경고를 무시해서는 안 된다.' },
-            { word: '존중하다', ipa: '[존중하다]', pos: '動', meaning: '尊重', example: '상대방을 존중하는 마음.' },
-            { word: '보호하다', ipa: '[보호하다]', pos: '動', meaning: '保護', example: '개인정보를 보호하다.' },
-            { word: '파괴하다', ipa: '[파괴하다]', pos: '動', meaning: '破壞', example: '자연을 파괴하지 맙시다.' },
-            { word: '수립하다', ipa: '[수립하다]', pos: '動', meaning: '樹立/制定', example: '장기 계획을 수립하다.' },
-            { word: '촉진하다', ipa: '[촉진하다]', pos: '動', meaning: '促進', example: '소비를 촉진하다.' },
-            { word: '억제하다', ipa: '[억제하다]', pos: '動', meaning: '抑制', example: '물가 상승을 억제하다.' },
-            { word: '겪다', ipa: '[겪다]', pos: '動', meaning: '經歷/遭受', example: '어려움을 직접 겪다.' },
-            { word: '익숙하다', ipa: '[익숙하다]', pos: '形', meaning: '熟悉', example: '새 환경에 익숙해지다.' },
-            { word: '적당하다', ipa: '[적당하다]', pos: '形', meaning: '適當', example: '운동량이 적당하다.' },
-            { word: '중요하다', ipa: '[중요하다]', pos: '形', meaning: '重要', example: '건강이 가장 중요하다.' },
-            { word: '특별하다', ipa: '[특별하다]', pos: '形', meaning: '特別', example: '특별한 의미가 있다.' },
-            { word: '평범하다', ipa: '[평범하다]', pos: '形', meaning: '平凡', example: '평범한 일상생활.' },
-            { word: '해롭다', ipa: '[해롭다]', pos: '形', meaning: '有害', example: '몸에 해로운 음식.' },
-            { word: '복잡하다', ipa: '[복잡하다]', pos: '形', meaning: '複雜', example: '도로가 매우 복잡하다.' },
-            { word: '안전하다', ipa: '[안전하다]', pos: '形', meaning: '安全', example: '안전한 곳으로 피하다.' },
-            { word: '친절하다', ipa: '[친절하다]', pos: '形', meaning: '親切', example: '직원이 매우 친절하다.' },
-            { word: '깨끗하다', ipa: '[깨끗하다]', pos: '形', meaning: '乾淨', example: '방을 깨끗하게 청소하다.' },
-            { word: '조용하다', ipa: '[조용하다]', pos: '形', meaning: '安靜', example: '도서관은 조용합니다.' },
-            { word: '심각하다', ipa: '[심각하다]', pos: '形', meaning: '嚴重', example: '오염 문제가 심각하다.' },
-            { word: '충분하다', ipa: '[충분하다]', pos: '形', meaning: '充足', example: '시간이 충분합니다.' },
-            { word: '가능하다', ipa: '[가능하다]', pos: '形', meaning: '可能', example: '즉시 출발이 가능합니다.' },
-            { word: '효과적이다', ipa: '[효과적이다]', pos: '形', meaning: '有效的', example: '효과적인 학습 방법.' },
-            { word: '긍정적이다', ipa: '[긍정적이다]', pos: '形', meaning: '積極的正面的', example: '긍정적인 사고방식.' },
-            { word: '부정적이다', ipa: '[부정적이다]', pos: '形', meaning: '消極的負面的', example: '부정적인 영향을 미치다.' },
-            { word: '필수적이다', ipa: '[필수적이다]', pos: '形', meaning: '必要的', example: '성공의 필수적인 요소.' },
-            { word: '구체적이다', ipa: '[구체적이다]', pos: '形', meaning: '具體的', example: '구체적인 계획을 세우다.' },
-            { word: '객관적이다', ipa: '[객관적이다]', pos: '形', meaning: '客觀的', example: '객관적인 시각을 유지하다.' },
-            { word: '주관적이다', ipa: '[주관적이다]', pos: '形', meaning: '主觀的', example: '지극히 주관적인 판단.' },
-            { word: '효율적이다', ipa: '[효율적이다]', pos: '形', meaning: '有效率的', example: '시간을 효율적으로 사용하다.' },
-            { word: '명확하다', ipa: '[명확하다]', pos: '形', meaning: '明確', example: '목표가 명확해야 합니다.' },
-            { word: '뚜렷하다', ipa: '[뚜렷하다]', pos: '形', meaning: '明顯/清楚', example: '입장 차이가 뚜렷하다.' },
-            { word: '당황스럽다', ipa: '[당황스럽다]', pos: '形', meaning: '慌張', example: '갑작스러운 질문에 당황스럽다.' },
-            { word: '안타깝다', ipa: '[안타깝다]', pos: '形', meaning: '遺憾/惋惜', example: '기회를 놓쳐 안타깝다.' },
-            { word: '결국', ipa: '[결국]', pos: '副', meaning: '最終', example: '결국 승리했습니다.' },
-            { word: '드디어', ipa: '[드디어]', pos: '副', meaning: '終於', example: '드디어 꿈을 이루었다.' },
-            { word: '점차', ipa: '[점차]', pos: '副', meaning: '漸漸', example: '상황이 점차 나아지다.' },
-            { word: '마침내', ipa: '[마침내]', pos: '副', meaning: '終於', example: '마침내 난관을 극복하다.' },
-            { word: '솔직히', ipa: '[솔직히]', pos: '副', meaning: '坦白地', example: '솔직히 고백하자면.' }
-        ];
-
-        // 題庫資料庫動態綁定 (確保顯示數字與資料陣列長度 100% 精準一致)
-        const database = {
-            yoga: {
-                title: "瑜珈解剖專業單字",
-                get subtitle() { return `YTT 師資培訓核心口令 (${this.data.length}字)`; },
-                lang: "en-US",
-                data: yogaData
-            },
-            daily: {
-                title: "日常生活實用單字",
-                get subtitle() { return `A2-B1 常用核心詞彙 (${this.data.length}字)`; },
-                lang: "en-US",
-                data: dailyData
-            },
-            topik: {
-                title: "TOPIK II 韓檢必背",
-                get subtitle() { return `中高級高頻核心詞 (${this.data.length}字)`; },
-                lang: "ko-KR",
-                data: topikData
-            }
+        const AI_DECK_STORAGE_KEY = 'vocab_matcher_ai_deck_v1';
+        const VOCABULARY_MEMORY_KEY = 'vocab_matcher_memory_v1';
+        const FAVORITES_STORAGE_KEY = 'vocab_matcher_favorites_v1';
+        const languageLocales = {
+            English: 'en-US', German: 'de-DE', French: 'fr-FR', Spanish: 'es-ES',
+            Italian: 'it-IT', Japanese: 'ja-JP', Korean: 'ko-KR'
         };
 
-        let favoriteWords = new Set();
-        let wrongWordsMap = new Map();
+        let favoritesStore = { version: 1, items: {} };
 
-        let currentModuleKey = 'yoga';
+        let currentModuleKey = null;
         let currentSegment = 'all';
         let fullSession10Words = [];
         let roundIndex = 1;
@@ -928,13 +518,650 @@
 
         let sessionStartTime = 0;
         let totalMistakes = 0;
+        let vocabularyMemory = null;
+        let pendingDeleteModuleKey = null;
+
+        function escapeHTML(value) {
+            return String(value).replace(/[&<>'"]/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            })[character]);
+        }
+
+        function escapeInlineJs(value) {
+            return escapeHTML(String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]+/g, ' '));
+        }
+
+        function isValidWord(item) {
+            return item && ['word', 'ipa', 'pos', 'meaning', 'example'].every(key => typeof item[key] === 'string')
+                && item.word.trim() && item.meaning.trim() && item.example.trim();
+        }
+
+        function createEmptyVocabularyMemory() {
+            return { version: 1, words: {}, decks: [], migrations: {} };
+        }
+
+        function loadVocabularyMemory() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(VOCABULARY_MEMORY_KEY));
+                if (!parsed || parsed.version !== 1 || !parsed.words || typeof parsed.words !== 'object' || Array.isArray(parsed.words) || !Array.isArray(parsed.decks)) {
+                    return createEmptyVocabularyMemory();
+                }
+                parsed.migrations = parsed.migrations && typeof parsed.migrations === 'object' ? parsed.migrations : {};
+                return parsed;
+            } catch (error) {
+                return createEmptyVocabularyMemory();
+            }
+        }
+
+        function saveVocabularyMemory(memory) {
+            try {
+                localStorage.setItem(VOCABULARY_MEMORY_KEY, JSON.stringify(memory));
+                vocabularyMemory = memory;
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function normalizeWordKey(word) {
+            return typeof word === 'string' ? word.trim().toLowerCase() : '';
+        }
+
+        function loadFavoritesStore() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY));
+                if (parsed?.version === 1 && parsed.items && typeof parsed.items === 'object' && !Array.isArray(parsed.items)) return parsed;
+            } catch (error) {}
+            return { version: 1, items: {} };
+        }
+
+        function saveFavoritesStore() {
+            try {
+                localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoritesStore));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function getItemContext(item, moduleKey = currentModuleKey) {
+            const module = database[moduleKey];
+            const contextId = item?._contextId || module?.contextId || '';
+            return {
+                contextId,
+                topic: item?._topic || module?.topic || '',
+                level: item?._level || module?.level || '',
+                language: item?._language || module?.language || 'English'
+            };
+        }
+
+        function getFavoriteId(item, moduleKey = currentModuleKey) {
+            const context = getItemContext(item, moduleKey);
+            return `${normalizeWordKey(item?.word)}|${context.contextId}`;
+        }
+
+        function isFavorite(item, moduleKey = currentModuleKey) {
+            return Boolean(favoritesStore.items[getFavoriteId(item, moduleKey)]);
+        }
+
+        function getFavoriteItems() {
+            return Object.values(favoritesStore.items)
+                .sort((a, b) => Date.parse(b.starredAt || 0) - Date.parse(a.starredAt || 0))
+                .map(favorite => ({ ...favorite.item, _contextId: favorite.contextId, _topic: favorite.topic, _level: favorite.level, _language: favorite.language }));
+        }
+
+        function hasUsableContext(context) {
+            return context && typeof context.topic === 'string' && context.topic.trim()
+                && typeof context.meaning === 'string' && context.meaning.trim()
+                && typeof context.example === 'string' && context.example.trim();
+        }
+
+        // Need Review source-of-truth: wrongCount > 0 AND mastery < 80, with one real generated context per normalized word.
+        function getSmartReviewItems() {
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            return Object.entries(memory.words).reduce((queue, [wordKey, entry]) => {
+                if (!(Number(entry.wrongCount) > 0 && Number(entry.mastery) < 80)) return queue;
+                const contexts = (Array.isArray(entry.contexts) ? entry.contexts : []).filter(hasUsableContext);
+                if (!contexts.length) return queue;
+                const context = [...contexts].sort((a, b) => {
+                    const aTime = Date.parse(a.lastReviewedAt || a.lastSeenAt || a.firstSeenAt || 0);
+                    const bTime = Date.parse(b.lastReviewedAt || b.lastSeenAt || b.firstSeenAt || 0);
+                    return bTime - aTime;
+                })[0];
+                queue.push({
+                    word: entry.word || wordKey,
+                    ipa: context.phonetic || '',
+                    pos: context.pos || 'word',
+                    meaning: context.meaning,
+                    example: context.example,
+                    _contextId: context.id,
+                    _topic: context.topic,
+                    _level: context.level,
+                    _language: context.language
+                });
+                return queue;
+            }, []);
+        }
+
+        function registerVirtualModule(key, title, subtitle, items) {
+            database[key] = { title, subtitle, lang: languageLocales[items[0]?._language] || 'en-US', data: items, virtual: true };
+            return key;
+        }
+
+        function openFavoritesReview() {
+            const items = getFavoriteItems();
+            currentModuleKey = registerVirtualModule('favorites', 'Favorite Words', 'Explicitly starred vocabulary', items);
+            showView('review');
+        }
+
+        function openSmartReviewQueue() {
+            const items = getSmartReviewItems();
+            currentModuleKey = registerVirtualModule('smart-review', 'Need Review', 'Smart Review Queue', items);
+            currentSegment = 'all';
+            if (!items.length) {
+                showView('review');
+                return;
+            }
+            initRoundSession();
+        }
+
+        function getCustomDeckId(language, topic, level) {
+            return encodeURIComponent([
+                String(language || '').trim().toLowerCase(),
+                String(topic || '').trim().toLowerCase(),
+                String(level || '').trim().toUpperCase()
+            ].join('|'));
+        }
+
+        function createEmptyCustomDeckStore() {
+            return { version: 2, activeDeckId: null, decks: {} };
+        }
+
+        function convertLegacyCustomDeck(saved) {
+            if (!saved || !Array.isArray(saved.words) || !saved.words.length || !saved.words.every(isValidWord)) return createEmptyCustomDeckStore();
+            const titleParts = typeof saved.title === 'string' ? saved.title.split(' · ') : [];
+            const topic = saved.topic || titleParts[0] || 'AI Generated Deck';
+            const level = saved.level || titleParts[1] || '';
+            const language = saved.language || 'English';
+            const id = getCustomDeckId(language, topic, level);
+            return {
+                version: 2,
+                activeDeckId: id,
+                decks: {
+                    [id]: {
+                        id,
+                        language,
+                        topic,
+                        level,
+                        title: saved.title || `${topic} · ${level}`,
+                        createdAt: saved.createdAt || new Date().toISOString(),
+                        updatedAt: saved.createdAt || new Date().toISOString(),
+                        words: saved.words
+                    }
+                }
+            };
+        }
+
+        function loadCustomDeckStore() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(AI_DECK_STORAGE_KEY));
+                if (saved?.version === 2 && saved.decks && typeof saved.decks === 'object' && !Array.isArray(saved.decks)) {
+                    return saved;
+                }
+                const migrated = convertLegacyCustomDeck(saved);
+                if (Object.keys(migrated.decks).length) saveCustomDeckStore(migrated);
+                return migrated;
+            } catch (error) {
+                return createEmptyCustomDeckStore();
+            }
+        }
+
+        function saveCustomDeckStore(store) {
+            try {
+                localStorage.setItem(AI_DECK_STORAGE_KEY, JSON.stringify(store));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function mergeCustomDeckWords(previousWords, generatedWords) {
+            const merged = new Map();
+            previousWords.forEach(item => {
+                const key = normalizeWordKey(item?.word);
+                if (key && isValidWord(item) && !merged.has(key)) merged.set(key, item);
+            });
+            generatedWords.forEach(item => {
+                const key = normalizeWordKey(item?.word);
+                if (!key || !isValidWord(item)) return;
+                const previous = merged.get(key);
+                merged.set(key, previous ? {
+                    word: item.word.trim() || previous.word,
+                    ipa: item.ipa.trim() || previous.ipa,
+                    pos: item.pos.trim() || previous.pos,
+                    meaning: item.meaning.trim() || previous.meaning,
+                    example: item.example.trim() || previous.example
+                } : item);
+            });
+            return [...merged.values()];
+        }
+
+        function registerCustomDeck(deck) {
+            if (!deck || !Array.isArray(deck.words) || !deck.words.length || !deck.words.every(isValidWord)) return null;
+            const moduleKey = `ai:${deck.id}`;
+            database[moduleKey] = {
+                title: deck.title || `${deck.topic} · ${deck.level}`,
+                subtitle: `${deck.language || 'English'} custom vocabulary (${deck.words.length}字)`,
+                lang: languageLocales[deck.language] || 'en-US',
+                contextId: deck.id,
+                topic: deck.topic,
+                level: deck.level,
+                language: deck.language,
+                data: deck.words
+            };
+            return moduleKey;
+        }
+
+        function upsertCustomDeck(payload) {
+            const store = loadCustomDeckStore();
+            const id = getCustomDeckId(payload.language, payload.topic, payload.level);
+            const previous = store.decks[id];
+            const timestamp = new Date().toISOString();
+            const deck = {
+                id,
+                language: payload.language,
+                topic: payload.topic,
+                level: payload.level,
+                title: `${payload.topic} · ${payload.level}`,
+                createdAt: previous?.createdAt || timestamp,
+                updatedAt: timestamp,
+                words: mergeCustomDeckWords(Array.isArray(previous?.words) ? previous.words : [], payload.words)
+            };
+            store.decks[id] = deck;
+            store.activeDeckId = id;
+            saveCustomDeckStore(store);
+            return { deck, moduleKey: registerCustomDeck(deck) };
+        }
+
+        function getMostRecentContext(contexts) {
+            return [...contexts].sort((a, b) => {
+                const aTime = Date.parse(a.lastReviewedAt || a.lastSeenAt || a.firstSeenAt || 0);
+                const bTime = Date.parse(b.lastReviewedAt || b.lastSeenAt || b.firstSeenAt || 0);
+                return bTime - aTime;
+            })[0];
+        }
+
+        function removeContextFromRuntime(contextId, deletedModuleKey) {
+            const belongsToDeletedContext = item => item?._contextId === contextId;
+            const removedFromActiveVirtualState = fullSession10Words.some(belongsToDeletedContext) || currentRound5.some(belongsToDeletedContext);
+            fullSession10Words = currentModuleKey === deletedModuleKey ? [] : fullSession10Words.filter(item => !belongsToDeletedContext(item));
+            currentRound5 = currentModuleKey === deletedModuleKey ? [] : currentRound5.filter(item => !belongsToDeletedContext(item));
+            selectedLeftCard = null;
+            selectedRightCard = null;
+            roundMatchedCount = 0;
+
+            ['favorites', 'smart-review'].forEach(key => {
+                if (database[key]?.data) database[key].data = database[key].data.filter(item => !belongsToDeletedContext(item));
+            });
+            return removedFromActiveVirtualState;
+        }
+
+        function deleteGeneratedTopicById(contextId) {
+            const store = loadCustomDeckStore();
+            const deck = store.decks[contextId];
+            if (!deck) return false;
+
+            delete store.decks[contextId];
+            if (store.activeDeckId === contextId) {
+                const remainingDecks = Object.values(store.decks).sort((a, b) => Date.parse(b.updatedAt || 0) - Date.parse(a.updatedAt || 0));
+                store.activeDeckId = remainingDecks[0]?.id || null;
+            }
+            saveCustomDeckStore(store);
+
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            Object.keys(memory.words).forEach(wordKey => {
+                const entry = memory.words[wordKey];
+                const contexts = Array.isArray(entry.contexts) ? entry.contexts : [];
+                if (!contexts.some(context => context.id === contextId)) return;
+                const remainingContexts = contexts.filter(context => context.id !== contextId);
+                if (!remainingContexts.length) {
+                    delete memory.words[wordKey];
+                    return;
+                }
+
+                // Statistics live at normalized-word level. Never subtract historical counts when one context is deleted.
+                entry.contexts = remainingContexts;
+                entry.topics = [...new Set(remainingContexts.map(context => context.topic).filter(Boolean))];
+                entry.levels = [...new Set(remainingContexts.map(context => context.level).filter(Boolean))];
+                const latest = getMostRecentContext(remainingContexts);
+                entry.meaning = latest.meaning;
+                entry.phonetic = latest.phonetic || '';
+                entry.example = latest.example;
+                entry.exampleTranslation = latest.exampleTranslation || '';
+            });
+            memory.decks = memory.decks.filter(memoryDeck => memoryDeck.contextId !== contextId);
+            saveVocabularyMemory(memory);
+
+            Object.keys(favoritesStore.items).forEach(favoriteId => {
+                if (favoritesStore.items[favoriteId]?.contextId === contextId) delete favoritesStore.items[favoriteId];
+            });
+            saveFavoritesStore();
+
+            const deletedModuleKey = `ai:${contextId}`;
+            const removedFromActiveVirtualState = removeContextFromRuntime(contextId, deletedModuleKey);
+            delete database[deletedModuleKey];
+
+            const deletedCurrentTopic = currentModuleKey === deletedModuleKey;
+            if (deletedCurrentTopic) currentModuleKey = store.activeDeckId ? `ai:${store.activeDeckId}` : null;
+            updateBadges();
+            const currentView = document.querySelector('section:not(.hidden)')?.id;
+            if (deletedCurrentTopic || (removedFromActiveVirtualState && ['view-preview', 'view-game'].includes(currentView))) showView('home');
+            else {
+                if (currentView === 'view-review') renderReviewList();
+                else renderModuleCards();
+            }
+            return true;
+        }
+
+        function requestDeleteTopic(moduleKey) {
+            const module = database[moduleKey];
+            if (!module?.contextId || module.virtual) return;
+            pendingDeleteModuleKey = moduleKey;
+            document.getElementById('delete-topic-message').textContent = `Delete “${module.topic}”?`;
+            document.getElementById('delete-topic-dialog').classList.remove('hidden');
+        }
+
+        function cancelDeleteTopic() {
+            pendingDeleteModuleKey = null;
+            document.getElementById('delete-topic-dialog').classList.add('hidden');
+        }
+
+        function confirmDeleteTopic() {
+            const moduleKey = pendingDeleteModuleKey;
+            const contextId = database[moduleKey]?.contextId;
+            cancelDeleteTopic();
+            if (contextId) deleteGeneratedTopicById(contextId);
+        }
+
+        function calculateMastery(entry) {
+            const correctCount = Number(entry?.correctCount) || 0;
+            const wrongCount = Number(entry?.wrongCount) || 0;
+            const attempts = correctCount + wrongCount;
+            if (attempts === 0) return 0;
+            const accuracy = correctCount / attempts;
+            const practiceBonus = Math.min((Number(entry?.seenCount) || 0) * 5, 20);
+            return Math.round(Math.min(100, accuracy * 80 + practiceBonus));
+        }
+
+        function createMemoryWordEntry(item, timestamp) {
+            return {
+                word: item.word.trim(),
+                meaning: item.meaning?.trim() || '',
+                phonetic: item.ipa?.trim() || '',
+                example: item.example?.trim() || '',
+                exampleTranslation: item.exampleTranslation?.trim() || '',
+                seenCount: 0,
+                correctCount: 0,
+                wrongCount: 0,
+                topics: [],
+                levels: [],
+                contexts: [],
+                firstSeenAt: timestamp,
+                lastSeenAt: timestamp,
+                lastReviewedAt: null,
+                mastery: 0
+            };
+        }
+
+        function upsertMemoryContext(entry, deckMetadata, item, timestamp) {
+            const language = deckMetadata.language || 'English';
+            const topic = String(deckMetadata.topic || '').trim();
+            const level = String(deckMetadata.level || '').trim().toUpperCase();
+            if (!topic || !level) return;
+            const id = getCustomDeckId(language, topic, level);
+            entry.contexts = Array.isArray(entry.contexts) ? entry.contexts : [];
+            const existingIndex = entry.contexts.findIndex(context => context.id === id);
+            const previous = existingIndex >= 0 ? entry.contexts[existingIndex] : null;
+            const context = {
+                id,
+                topic,
+                normalizedTopic: topic.toLowerCase(),
+                language,
+                level,
+                meaning: item.meaning?.trim() || previous?.meaning || '',
+                phonetic: item.ipa?.trim() || previous?.phonetic || '',
+                pos: item.pos?.trim() || previous?.pos || 'word',
+                example: item.example?.trim() || previous?.example || '',
+                exampleTranslation: item.exampleTranslation?.trim() || previous?.exampleTranslation || '',
+                firstSeenAt: previous?.firstSeenAt || deckMetadata.createdAt || timestamp,
+                lastSeenAt: timestamp,
+                lastReviewedAt: previous?.lastReviewedAt || null
+            };
+            if (existingIndex >= 0) entry.contexts[existingIndex] = context;
+            else entry.contexts.push(context);
+        }
+
+        function upsertGeneratedDeckMemory(deckMetadata, words) {
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            const timestamp = deckMetadata.createdAt || new Date().toISOString();
+            const uniqueWords = new Map();
+            words.forEach(item => {
+                const key = normalizeWordKey(item?.word);
+                if (key && !uniqueWords.has(key)) uniqueWords.set(key, item);
+            });
+
+            uniqueWords.forEach((item, key) => {
+                const entry = memory.words[key] || createMemoryWordEntry(item, timestamp);
+                entry.word = item.word.trim();
+                entry.meaning = item.meaning?.trim() || entry.meaning || '';
+                entry.phonetic = item.ipa?.trim() || entry.phonetic || '';
+                entry.example = item.example?.trim() || entry.example || '';
+                entry.exampleTranslation = item.exampleTranslation?.trim() || entry.exampleTranslation || '';
+                entry.seenCount = (Number(entry.seenCount) || 0) + 1;
+                entry.correctCount = Number(entry.correctCount) || 0;
+                entry.wrongCount = Number(entry.wrongCount) || 0;
+                entry.topics = Array.isArray(entry.topics) ? entry.topics : [];
+                entry.levels = Array.isArray(entry.levels) ? entry.levels : [];
+                if (deckMetadata.topic && !entry.topics.includes(deckMetadata.topic)) entry.topics.push(deckMetadata.topic);
+                if (deckMetadata.level && !entry.levels.includes(deckMetadata.level)) entry.levels.push(deckMetadata.level);
+                upsertMemoryContext(entry, deckMetadata, item, timestamp);
+                entry.firstSeenAt = entry.firstSeenAt || timestamp;
+                entry.lastSeenAt = timestamp;
+                entry.lastReviewedAt = entry.lastReviewedAt || null;
+                entry.mastery = calculateMastery(entry);
+                memory.words[key] = entry;
+            });
+
+            const deckId = deckMetadata.id || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            if (!memory.decks.some(deck => deck.id === deckId)) {
+                memory.decks.push({
+                    id: deckId,
+                    contextId: getCustomDeckId(deckMetadata.language, deckMetadata.topic, deckMetadata.level),
+                    language: deckMetadata.language || '',
+                    topic: deckMetadata.topic || '',
+                    level: deckMetadata.level || '',
+                    wordKeys: [...uniqueWords.keys()],
+                    createdAt: timestamp
+                });
+            }
+            saveVocabularyMemory(memory);
+            return memory;
+        }
+
+        function recordWordAnswer(word, isCorrect) {
+            const item = typeof word === 'string' ? { word } : word;
+            const key = normalizeWordKey(item?.word);
+            if (!key) return;
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            const timestamp = new Date().toISOString();
+            const entry = memory.words[key] || createMemoryWordEntry(item, timestamp);
+            entry.correctCount = Number(entry.correctCount) || 0;
+            entry.wrongCount = Number(entry.wrongCount) || 0;
+            if (isCorrect) entry.correctCount += 1;
+            else entry.wrongCount += 1;
+            entry.lastReviewedAt = timestamp;
+            const contextId = item?._contextId || database[currentModuleKey]?.contextId;
+            const context = Array.isArray(entry.contexts) ? entry.contexts.find(value => value.id === contextId) : null;
+            if (context) context.lastReviewedAt = timestamp;
+            entry.mastery = calculateMastery(entry);
+            memory.words[key] = entry;
+            saveVocabularyMemory(memory);
+            updateBadges();
+        }
+
+        function getKnownWordKeys() {
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            return Object.entries(memory.words)
+                .sort(([, a], [, b]) => Date.parse(b.lastSeenAt || b.firstSeenAt || 0) - Date.parse(a.lastSeenAt || a.firstSeenAt || 0))
+                .slice(0, 100)
+                .map(([key]) => key);
+        }
+
+        function getOtherStoredContexts(word, moduleKey) {
+            if (database[moduleKey]?.virtual) return [];
+            const entry = (vocabularyMemory || loadVocabularyMemory()).words[normalizeWordKey(word)];
+            const contexts = Array.isArray(entry?.contexts) ? entry.contexts : [];
+            const distinctTopics = new Set(contexts.map(context => context.normalizedTopic));
+            if (distinctTopics.size < 2) return [];
+            const currentContextId = database[moduleKey]?.contextId;
+            return contexts.filter(context => context.id !== currentContextId);
+        }
+
+        function migrateSavedAiDeckIntoMemory() {
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            if (memory.migrations.aiDeckV1) return;
+            const store = loadCustomDeckStore();
+            Object.values(store.decks).forEach(deck => {
+                if (!Array.isArray(deck.words) || !deck.words.length || !deck.words.every(isValidWord)) return;
+                upsertGeneratedDeckMemory({
+                    id: `migrated-custom-${deck.id}`,
+                    topic: deck.topic,
+                    level: deck.level,
+                    language: deck.language,
+                    createdAt: deck.createdAt || new Date().toISOString()
+                }, deck.words);
+            });
+            vocabularyMemory.migrations.aiDeckV1 = true;
+            saveVocabularyMemory(vocabularyMemory);
+        }
+
+        function migrateVocabularyMemoryContexts() {
+            const memory = vocabularyMemory || loadVocabularyMemory();
+            if (memory.migrations.multiContextV1) return;
+            const store = loadCustomDeckStore();
+            Object.values(store.decks).forEach(deck => {
+                if (!Array.isArray(deck.words)) return;
+                const timestamp = deck.updatedAt || deck.createdAt || new Date().toISOString();
+                const seen = new Set();
+                deck.words.forEach(item => {
+                    const key = normalizeWordKey(item?.word);
+                    if (!key || seen.has(key) || !isValidWord(item)) return;
+                    seen.add(key);
+                    const entry = memory.words[key] || createMemoryWordEntry(item, deck.createdAt || timestamp);
+                    upsertMemoryContext(entry, {
+                        language: deck.language,
+                        topic: deck.topic,
+                        level: deck.level,
+                        createdAt: deck.createdAt
+                    }, item, timestamp);
+                    memory.words[key] = entry;
+                });
+            });
+            memory.migrations.multiContextV1 = true;
+            saveVocabularyMemory(memory);
+        }
+
+        function updateMemoryProfileStats() {
+            const entries = Object.values((vocabularyMemory || loadVocabularyMemory()).words);
+            const total = entries.length;
+            const mastered = entries.filter(entry => Number(entry.mastery) >= 80).length;
+            const needReview = getSmartReviewItems().length;
+            const totalEl = document.getElementById('profile-memory-total');
+            const masteredEl = document.getElementById('profile-memory-mastered');
+            const reviewEl = document.getElementById('profile-memory-review');
+            if (totalEl) totalEl.innerText = total;
+            if (masteredEl) masteredEl.innerText = mastered;
+            if (reviewEl) reviewEl.innerText = needReview;
+        }
+
+        function restoreAiDeck() {
+            const store = loadCustomDeckStore();
+            Object.values(store.decks).forEach(registerCustomDeck);
+            if (store.activeDeckId && database[`ai:${store.activeDeckId}`]) currentModuleKey = `ai:${store.activeDeckId}`;
+        }
+
+        function setGeneratorState(isLoading, message = '') {
+            const button = document.getElementById('ai-generate-button');
+            const error = document.getElementById('ai-generator-error');
+            button.disabled = isLoading;
+            button.textContent = isLoading ? 'Generating your vocabulary deck…' : 'Generate Deck';
+            error.textContent = message;
+            error.classList.toggle('hidden', !message);
+        }
+
+        async function generateAiDeck(event) {
+            event.preventDefault();
+            const language = document.getElementById('ai-language').value;
+            const topic = document.getElementById('ai-topic').value.trim();
+            const level = document.getElementById('ai-level').value;
+            const count = Number(document.getElementById('ai-count').value);
+
+            if (!topic) {
+                setGeneratorState(false, '請輸入想學習的主題。');
+                document.getElementById('ai-topic').focus();
+                return;
+            }
+
+            setGeneratorState(true);
+            try {
+                const knownWords = getKnownWordKeys();
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language, topic, level, count, knownWords })
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(payload.error || '無法產生單字牌組，請稍後再試。');
+                if (!Array.isArray(payload.words) || payload.words.length < 1 || !payload.words.every(isValidWord)) {
+                    throw new Error('伺服器傳回的單字格式不完整，請重試。');
+                }
+
+                const { moduleKey } = upsertCustomDeck(payload);
+                upsertGeneratedDeckMemory({ language: payload.language, topic: payload.topic, level: payload.level }, payload.words);
+                currentModuleKey = moduleKey;
+                currentSegment = 'all';
+                setSegment('all');
+                initRoundSession();
+            } catch (error) {
+                setGeneratorState(false, error.message || '網路連線失敗，請檢查後重試。');
+                return;
+            }
+            setGeneratorState(false);
+        }
 
         function toggleFavorite(wordText) {
-            if (favoriteWords.has(wordText)) {
-                favoriteWords.delete(wordText);
+            const module = database[currentModuleKey];
+            const item = module?.data.find(value => value.word === wordText);
+            if (!item) return;
+            const id = getFavoriteId(item);
+            if (favoritesStore.items[id]) {
+                delete favoritesStore.items[id];
             } else {
-                favoriteWords.add(wordText);
+                const context = getItemContext(item);
+                if (!context.contextId) return;
+                favoritesStore.items[id] = {
+                    id,
+                    wordKey: normalizeWordKey(item.word),
+                    contextId: context.contextId,
+                    topic: context.topic,
+                    level: context.level,
+                    language: context.language,
+                    starredAt: new Date().toISOString(),
+                    item: { word: item.word, ipa: item.ipa, pos: item.pos, meaning: item.meaning, example: item.example }
+                };
             }
+            saveFavoritesStore();
+            if (currentModuleKey === 'favorites') database.favorites.data = getFavoriteItems();
             updateBadges();
 
             const currentView = document.querySelector('section:not(.hidden)')?.id;
@@ -943,18 +1170,22 @@
         }
 
         function updateBadges() {
-            document.getElementById('fav-count-badge').innerText = favoriteWords.size;
-            document.getElementById('wrong-count-badge').innerText = wrongWordsMap.size;
-            document.getElementById('profile-fav-count').innerText = `${favoriteWords.size} Words`;
-            document.getElementById('profile-wrong-count').innerText = `${wrongWordsMap.size} Words`;
+            const favoriteCount = getFavoriteItems().length;
+            const reviewCount = getSmartReviewItems().length;
+            document.getElementById('fav-count-badge').innerText = favoriteCount;
+            document.getElementById('wrong-count-badge').innerText = reviewCount;
+            document.getElementById('profile-fav-count').innerText = `${favoriteCount} Words`;
+            document.getElementById('profile-wrong-count').innerText = `${reviewCount} Words`;
+            updateMemoryProfileStats();
         }
 
         function getFilteredWordsForModule(modKey) {
-            const allModData = database[modKey].data;
+            const allModData = database[modKey]?.data || [];
             if (currentSegment === 'fav') {
-                return allModData.filter(item => favoriteWords.has(item.word));
+                return allModData.filter(item => isFavorite(item, modKey));
             } else if (currentSegment === 'wrong') {
-                return allModData.filter(item => wrongWordsMap.has(item.word));
+                const reviewIdentities = new Set(getSmartReviewItems().map(item => `${normalizeWordKey(item.word)}|${item._contextId}`));
+                return allModData.filter(item => reviewIdentities.has(`${normalizeWordKey(item.word)}|${getItemContext(item, modKey).contextId}`));
             }
             return allModData;
         }
@@ -986,8 +1217,11 @@
             if (activeBtn) activeBtn.classList.replace('text-[#777777]', 'text-[#355C7D]');
 
             if (tab === 'home') showView('home');
-            if (tab === 'match') { initRoundSession(); }
-            if (tab === 'review') showView('review');
+            if (tab === 'match') {
+                if (!currentModuleKey || !database[currentModuleKey]?.data.length) showView('home');
+                else initRoundSession();
+            }
+            if (tab === 'review') openFavoritesReview();
             if (tab === 'profile') showView('profile');
         }
 
@@ -1010,7 +1244,13 @@
             const container = document.getElementById('module-cards-container');
             container.innerHTML = '';
 
-            Object.keys(database).forEach(key => {
+            const moduleKeys = Object.keys(database).filter(key => !database[key].virtual);
+            if (!moduleKeys.length) {
+                container.innerHTML = `<div class="bg-white border border-dashed border-[#D9D3C8] rounded-[16px] p-5 text-center"><p class="font-semibold text-[#355C7D]">還沒有單字牌組</p><p class="meta-text mt-1">使用上方 New Topic 產生第一副牌組。</p></div>`;
+                return;
+            }
+
+            moduleKeys.forEach(key => {
                 const mod = database[key];
                 const filteredData = getFilteredWordsForModule(key);
                 const count = filteredData.length;
@@ -1033,11 +1273,14 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-base text-[#355C7D]">${mod.title}</h3>
-                            <p class="meta-text">${mod.subtitle}</p>
+                            <h3 class="font-semibold text-base text-[#355C7D]">${escapeHTML(mod.title)}</h3>
+                            <p class="meta-text">${escapeHTML(mod.subtitle)}</p>
                         </div>
                     </div>
-                    <span class="font-handwriting text-xl ${count === 0 ? 'text-[#777777]' : 'text-[#F67280]'} font-bold">${count} Words</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-handwriting text-xl ${count === 0 ? 'text-[#777777]' : 'text-[#F67280]'} font-bold">${count} Words</span>
+                        <button type="button" onclick="event.stopPropagation(); requestDeleteTopic('${escapeInlineJs(key)}')" class="w-8 h-8 rounded-full text-[#777777] hover:text-[#E65A5A] hover:bg-[#FFFDF8] active:scale-90 transition flex items-center justify-center" aria-label="Delete Topic" title="Delete Topic">•••</button>
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -1047,7 +1290,7 @@
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = database[currentModuleKey].lang || 'en-US';
+                u.lang = database[currentModuleKey]?.lang || 'en-US';
                 u.rate = 0.85;
                 window.speechSynthesis.speak(u);
             }
@@ -1070,27 +1313,27 @@
             previewContainer.innerHTML = '';
 
             fullSession10Words.forEach(item => {
-                const isFav = favoriteWords.has(item.word);
+                const isFav = isFavorite(item);
                 const row = document.createElement('div');
                 row.className = 'bg-[#FFFDF8] border border-[#ECE7DE] rounded-xl p-3 shadow-level1 flex flex-col space-y-1';
                 row.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
-                            <button onclick="event.stopPropagation(); toggleFavorite('${item.word}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
+                            <button onclick="event.stopPropagation(); toggleFavorite('${escapeInlineJs(item.word)}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
                                 <svg class="w-4 h-4 ${isFav ? 'text-[#F67280] fill-current' : 'text-[#D9D3C8] fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                             </button>
-                            <span class="font-semibold text-[#355C7D] text-base">${item.word}</span>
-                            <span class="meta-text text-[11px] text-[#777777]">${item.ipa}</span>
-                            <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${item.pos}</span>
+                            <span class="font-semibold text-[#355C7D] text-base">${escapeHTML(item.word)}</span>
+                            <span class="meta-text text-[11px] text-[#777777]">${escapeHTML(item.ipa)}</span>
+                            <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${escapeHTML(item.pos)}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium text-[#2D3748]">${item.meaning}</span>
-                            <button onclick="speak('${item.word}')" class="p-1 text-[#355C7D] hover:scale-110 active:scale-95 transition" aria-label="發音">
+                            <span class="text-sm font-medium text-[#2D3748]">${escapeHTML(item.meaning)}</span>
+                            <button onclick="speak('${escapeInlineJs(item.word)}')" class="p-1 text-[#355C7D] hover:scale-110 active:scale-95 transition" aria-label="發音">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs text-[#777777] italic">"${item.example}"</p>
+                    <p class="text-xs text-[#777777] italic">"${escapeHTML(item.example)}"</p>
                 `;
                 previewContainer.appendChild(row);
             });
@@ -1122,8 +1365,9 @@
             const startIdx = (roundIndex - 1) * 5;
             currentRound5 = fullSession10Words.slice(startIdx, startIdx + 5);
 
-            document.getElementById('round-label').innerText = `Round ${roundIndex} of 2`;
-            document.getElementById('match-score-text').innerText = `Matched: 0 / 5`;
+            const totalRounds = Math.ceil(fullSession10Words.length / 5);
+            document.getElementById('round-label').innerText = `Round ${roundIndex} of ${totalRounds}`;
+            document.getElementById('match-score-text').innerText = `Matched: 0 / ${currentRound5.length}`;
             document.getElementById('game-progress-bar').style.width = `0%`;
 
             const leftCol = document.getElementById('left-words-col');
@@ -1138,11 +1382,11 @@
                 const fontClass = getFontSize(c.text);
                 card.className = 'state-default rounded-[16px] h-[64px] relative flex flex-col justify-center items-center shadow-level1 cursor-pointer card-transition active:scale-[0.96] select-none px-2';
                 card.innerHTML = `
-                    <span class="absolute top-1.5 left-2.5 meta-text text-[10px] leading-none opacity-80 pointer-events-none">${c.pos}</span>
+                    <span class="absolute top-1.5 left-2.5 meta-text text-[10px] leading-none opacity-80 pointer-events-none">${escapeHTML(c.pos)}</span>
                     <div class="px-5 w-full flex items-center justify-center text-center">
-                        <span class="font-semibold ${fontClass} text-center break-words hyphens-auto max-w-full">${c.text}</span>
+                        <span class="font-semibold ${fontClass} text-center break-words hyphens-auto max-w-full">${escapeHTML(c.text)}</span>
                     </div>
-                    <button onclick="event.stopPropagation(); speak('${c.text}')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#355C7D] opacity-60 hover:opacity-100 active:scale-90 transition" aria-label="發音">
+                    <button onclick="event.stopPropagation(); speak('${escapeInlineJs(c.text)}')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#355C7D] opacity-60 hover:opacity-100 active:scale-90 transition" aria-label="發音">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                     </button>
                 `;
@@ -1154,7 +1398,7 @@
                 const card = document.createElement('div');
                 const fontClass = getFontSize(c.text);
                 card.className = 'state-default rounded-[16px] h-[64px] px-2 flex items-center justify-center text-center font-semibold shadow-level1 cursor-pointer card-transition active:scale-[0.96] select-none';
-                card.innerHTML = `<span class="${fontClass} text-center break-words leading-snug px-1">${c.text}</span>`;
+                card.innerHTML = `<span class="${fontClass} text-center break-words leading-snug px-1">${escapeHTML(c.text)}</span>`;
                 card.onclick = () => handleCardClick(card, c);
                 rightCol.appendChild(card);
             });
@@ -1188,14 +1432,15 @@
                 if (selectedLeftCard.id === selectedRightCard.id) {
                     playSound('success');
                     triggerHaptic('medium');
+                    recordWordAnswer(selectedLeftCard.itemObj, true);
 
                     [lEl, rEl].forEach(el => {
                         el.className = el.className.replace('state-selected', 'state-correct') + ' animate-snap';
                     });
 
                     roundMatchedCount++;
-                    document.getElementById('match-score-text').innerText = `Matched: ${roundMatchedCount} / 5`;
-                    document.getElementById('game-progress-bar').style.width = `${(roundMatchedCount / 5) * 100}%`;
+                    document.getElementById('match-score-text').innerText = `Matched: ${roundMatchedCount} / ${currentRound5.length}`;
+                    document.getElementById('game-progress-bar').style.width = `${(roundMatchedCount / currentRound5.length) * 100}%`;
 
                     selectedLeftCard = null; selectedRightCard = null;
 
@@ -1203,7 +1448,7 @@
                         [lEl, rEl].forEach(el => el.classList.add('opacity-0', 'pointer-events-none'));
                         document.getElementById('view-game').classList.remove('pointer-events-none');
 
-                        if (roundMatchedCount === 5) {
+                        if (roundMatchedCount === currentRound5.length) {
                             if (roundIndex === 1 && fullSession10Words.length > 5) {
                                 roundIndex = 2;
                                 setTimeout(() => startRoundChallenge(), 350);
@@ -1218,8 +1463,7 @@
                     totalMistakes++;
 
                     if (selectedLeftCard.itemObj) {
-                        wrongWordsMap.set(selectedLeftCard.itemObj.word, selectedLeftCard.itemObj);
-                        updateBadges();
+                        recordWordAnswer(selectedLeftCard.itemObj, false);
                     }
 
                     [lEl, rEl].forEach(el => {
@@ -1283,30 +1527,52 @@
         function renderReviewList() {
             const container = document.getElementById('review-list-container');
             container.innerHTML = '';
-            const list = database[currentModuleKey].data;
+            const list = database[currentModuleKey]?.data || [];
             document.getElementById('total-words-count').innerText = `Total: ${list.length}`;
 
+            if (!list.length) {
+                const isSmartReview = currentModuleKey === 'smart-review';
+                container.innerHTML = `<div class="bg-white border border-dashed border-[#D9D3C8] rounded-xl p-6 text-center"><p class="font-semibold text-[#355C7D]">${isSmartReview ? '目前沒有需要複習的單字' : '尚未收藏任何單字'}</p><p class="meta-text mt-1">${isSmartReview ? '完成練習後，待加強單字會出現在這裡。' : '請在牌組預覽中點擊星號收藏。'}</p></div>`;
+                return;
+            }
+
             list.forEach(item => {
-                const isFav = favoriteWords.has(item.word);
-                const card = document.createElement('div');
-                card.className = 'bg-white border border-[#D9D3C8] rounded-xl p-3.5 shadow-level1 flex items-center justify-between';
-                card.innerHTML = `
-                    <div class="flex items-center space-x-2.5">
-                        <button onclick="event.stopPropagation(); toggleFavorite('${item.word}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
-                            <svg class="w-5 h-5 ${isFav ? 'text-[#F67280] fill-current' : 'text-[#D9D3C8] fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        </button>
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-semibold text-[#355C7D]">${item.word}</span>
-                                <span class="meta-text text-[11px]">${item.ipa}</span>
-                                <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${item.pos}</span>
+                const isFav = isFavorite(item);
+                const otherContexts = getOtherStoredContexts(item.word, currentModuleKey);
+                const otherContextsHtml = otherContexts.length ? `
+                    <div class="mt-2 pt-2 border-t border-[#ECE7DE] space-y-1.5">
+                        <p class="meta-text text-[10px] uppercase tracking-wide">Other generated contexts</p>
+                        ${otherContexts.map(context => `
+                            <div class="bg-[#FFFDF8] rounded-lg px-2.5 py-2 border border-[#ECE7DE]">
+                                <p class="text-[11px] font-semibold text-[#355C7D]">${escapeHTML(context.topic)} · ${escapeHTML(context.level)}</p>
+                                <p class="text-xs text-[#2D3748]">${escapeHTML(context.meaning)}</p>
+                                <p class="text-[11px] text-[#777777] italic mt-0.5">"${escapeHTML(context.example)}"</p>
                             </div>
-                            <p class="text-xs text-[#777777] mt-0.5">${item.meaning}</p>
-                        </div>
+                        `).join('')}
                     </div>
-                    <button onclick="speak('${item.word}')" class="p-2 text-[#355C7D] hover:scale-110 active:scale-95 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                    </button>
+                ` : '';
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-[#D9D3C8] rounded-xl p-3.5 shadow-level1';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <button onclick="event.stopPropagation(); toggleFavorite('${escapeInlineJs(item.word)}')" class="p-0.5 hover:scale-110 active:scale-90 transition">
+                                <svg class="w-5 h-5 ${isFav ? 'text-[#F67280] fill-current' : 'text-[#D9D3C8] fill-none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            </button>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-semibold text-[#355C7D]">${escapeHTML(item.word)}</span>
+                                    <span class="meta-text text-[11px]">${escapeHTML(item.ipa)}</span>
+                                    <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${escapeHTML(item.pos)}</span>
+                                </div>
+                                <p class="text-xs text-[#777777] mt-0.5">${escapeHTML(item.meaning)}</p>
+                            </div>
+                        </div>
+                        <button onclick="speak('${escapeInlineJs(item.word)}')" class="p-2 text-[#355C7D] hover:scale-110 active:scale-95 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        </button>
+                    </div>
+                    ${otherContextsHtml}
                 `;
                 container.appendChild(card);
             });
@@ -1321,6 +1587,7 @@
 
             const currentStyle = localStorage.getItem('vocab_matcher_icon_style') || 'A';
             updateIconCardHighlight(currentStyle);
+            updateMemoryProfileStats();
         }
 
         function updateIconCardHighlight(style) {
@@ -1352,6 +1619,12 @@
         }
 
         // 啟動應用程式
+        vocabularyMemory = loadVocabularyMemory();
+        migrateSavedAiDeckIntoMemory();
+        migrateVocabularyMemoryContexts();
+        restoreAiDeck();
+        favoritesStore = loadFavoritesStore();
+        document.getElementById('ai-generator-form').addEventListener('submit', generateAiDeck);
         updateBadges();
         showView('home');
     </script>
