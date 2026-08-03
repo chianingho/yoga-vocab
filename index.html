@@ -114,14 +114,12 @@
         :root {
             --color-primary: #355C7D;
             --color-highlight: #F7E36A;
-            --color-coral: #F67280;
             --color-mint: #6CC6A6;
             --color-error: #E65A5A;
             --color-paper: #FFFDF8;
             --color-card: #FFFFFF;
             --color-border: #D9D3C8;
             --color-secondary-text: #777777;
-            --color-divider: #ECE7DE;
         }
 
         body {
@@ -142,6 +140,13 @@
 
         .shadow-level1 { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
         .shadow-level2 { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+
+        .content-card {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 1rem;
+        }
 
         .card-transition { transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1); }
 
@@ -205,27 +210,12 @@
 
         <!-- 視圖 1: Home 主頁 -->
         <section id="view-home" class="space-y-5 my-auto">
-            <div class="text-center space-y-1">
-                <h2 class="font-display text-3xl text-[#355C7D]">Word Notebook</h2>
-                <p class="meta-text">請選擇今天想練習的單字模組與模式</p>
-            </div>
-
-            <!-- Segment Control -->
-            <div class="bg-[#ECE7DE] p-1 rounded-xl flex items-center justify-between text-sm font-medium">
-                <button onclick="setSegment('all')" id="seg-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-[#355C7D] shadow-sm font-semibold transition">全部題庫</button>
-                <button onclick="setSegment('fav')" id="seg-fav" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">收藏單字 <span id="fav-count-badge" class="text-[10px] bg-[#F67280] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
-                <button onclick="setSegment('wrong')" id="seg-wrong" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">錯題複習 <span id="wrong-count-badge" class="text-[10px] bg-[#E65A5A] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
-            </div>
-
-            <div class="bg-white border border-[#D9D3C8] rounded-[16px] p-4 shadow-level1 space-y-3.5">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="font-semibold text-base text-[#355C7D]">AI Vocabulary Generator</h3>
-                        <p class="meta-text">依主題建立專屬單字牌組</p>
-                    </div>
-                    <span class="font-handwriting text-xl text-[#F67280] font-bold">Create!</span>
+            <div class="content-card shadow-level1 space-y-3">
+                <div>
+                    <h3 class="font-semibold text-base text-[#355C7D]">Create Your Scenario</h3>
+                    <p class="meta-text">Describe a real-life situation, and we'll generate useful vocabulary, pronunciation, and examples tailored to your needs.</p>
                 </div>
-                <form id="ai-generator-form" class="space-y-3" novalidate>
+                <form id="ai-generator-form" class="space-y-2.5" novalidate>
                     <div class="grid grid-cols-2 gap-2.5">
                         <label class="meta-text">目標語言
                             <select id="ai-language" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
@@ -240,7 +230,7 @@
                     </div>
                     <div class="grid grid-cols-[1fr_92px] gap-2.5">
                         <label class="meta-text">主題
-                            <input id="ai-topic" type="text" maxlength="120" required placeholder="例如：Jewelry auction" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] placeholder:text-[#777777] focus:outline-none focus:border-[#355C7D]">
+                            <textarea id="ai-topic" rows="1" maxlength="120" required placeholder="例如：第一次在日本吃迴轉壽司..." class="mt-1 w-full resize-none overflow-y-hidden rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm leading-5 text-[#355C7D] placeholder:text-[#777777] focus:outline-none focus:border-[#355C7D]"></textarea>
                         </label>
                         <label class="meta-text">單字數
                             <select id="ai-count" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
@@ -248,11 +238,21 @@
                             </select>
                         </label>
                     </div>
+                    <div class="pt-0.5 text-xs">
+                        <button type="button" onclick="openScenarioPicker()" class="text-[#777777] underline underline-offset-2 hover:text-[#2D3748]">瀏覽情境</button>
+                    </div>
                     <p id="ai-generator-error" class="hidden text-xs text-[#E65A5A]" role="alert"></p>
-                    <button id="ai-generate-button" type="submit" class="w-full py-3 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
-                        Generate Deck
+                    <button id="ai-generate-button" type="submit" class="w-full py-3 mt-1 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
+                        Generate My Vocabulary
                     </button>
                 </form>
+            </div>
+
+            <!-- Segment Control -->
+            <div class="bg-[#ECE7DE] p-1 rounded-xl flex items-center justify-between text-sm font-medium">
+                <button onclick="setSegment('all')" id="seg-all" class="flex-1 py-1.5 text-center rounded-lg bg-white text-[#355C7D] shadow-sm font-semibold transition">全部題庫</button>
+                <button onclick="setSegment('fav')" id="seg-fav" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">收藏單字 <span id="fav-count-badge" class="text-[10px] bg-[#F67280] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
+                <button onclick="setSegment('wrong')" id="seg-wrong" class="flex-1 py-1.5 text-center rounded-lg text-[#777777] hover:text-[#355C7D] transition">錯題複習 <span id="wrong-count-badge" class="text-[10px] bg-[#E65A5A] text-white px-1.5 py-0.2 rounded-full ml-0.5">0</span></button>
             </div>
 
             <div id="module-cards-container" class="space-y-3.5">
@@ -264,8 +264,8 @@
         <section id="view-preview" class="hidden bg-white rounded-[24px] p-5 border border-[#D9D3C8] shadow-level1 space-y-4 my-auto">
             <div class="flex items-center justify-between border-b border-[#ECE7DE] pb-3">
                 <div>
-                    <h2 class="text-lg font-semibold text-[#355C7D]">本輪 10 個單字預習</h2>
-                    <p class="meta-text">點擊星號可收藏單字</p>
+                    <h2 class="text-lg font-semibold text-[#355C7D]">Preview Your Vocabulary</h2>
+                    <p class="meta-text">Review your words, hear the pronunciation, and save them for later.</p>
                 </div>
                 <span class="font-handwriting text-2xl text-[#F67280] font-bold">Ready?</span>
             </div>
@@ -290,6 +290,10 @@
         <!-- 視圖 3: 配對遊戲 View -->
         <section id="view-game" class="hidden my-auto w-full flex flex-col justify-between h-full space-y-3">
             <div>
+                <div class="mb-3">
+                    <h2 class="text-lg font-semibold text-[#355C7D]">Practice by Matching</h2>
+                    <p class="meta-text">Match words with their meanings to reinforce your memory through play.</p>
+                </div>
                 <div class="mb-3 space-y-1.5">
                     <div class="flex items-center justify-between">
                         <span id="round-label" class="font-handwriting text-2xl text-[#355C7D] font-bold">Round 1 of 2</span>
@@ -350,8 +354,8 @@
         <section id="view-review" class="hidden space-y-4 my-auto">
             <div class="border-b border-[#ECE7DE] pb-2 flex justify-between items-end">
                 <div>
-                    <h2 class="font-display text-2xl text-[#355C7D]">Review Library</h2>
-                    <p class="meta-text">已收錄的單字總覽與點擊收藏</p>
+                    <h2 class="font-display text-2xl text-[#355C7D]">Review Anytime</h2>
+                    <p class="meta-text">Revisit your saved vocabulary and strengthen your memory over time.</p>
                 </div>
                 <span id="total-words-count" class="meta-text bg-[#ECE7DE] px-2 py-0.5 rounded text-[#355C7D]">Total: 0</span>
             </div>
@@ -421,6 +425,27 @@
         </section>
 
     </main>
+
+    <div id="scenario-picker-dialog" class="hidden fixed inset-0 z-50 bg-[#355C7D]/35 px-5 flex items-center justify-center" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="scenario-picker-title">
+        <div class="w-full max-w-sm max-h-[80vh] overflow-y-auto bg-white rounded-[20px] border border-[#D9D3C8] p-5 shadow-level2">
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="scenario-picker-title" class="font-display text-xl text-[#355C7D]">瀏覽情境</h2>
+                <button type="button" onclick="closeScenarioPicker()" class="w-8 h-8 flex items-center justify-center rounded-full text-xl leading-none text-[#777777] hover:bg-[#ECE7DE]" aria-label="關閉情境選擇器">×</button>
+            </div>
+            <div class="divide-y divide-[#ECE7DE]">
+                <button type="button" data-scenario="First time ordering at a conveyor belt sushi restaurant in Japan" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一次在日本吃迴轉壽司</button>
+                <button type="button" data-scenario="Ordering your first drink at a bar" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一次在酒吧點飲料</button>
+                <button type="button" data-scenario="Need to find a toilet urgently and ask for directions" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">尿急找廁所</button>
+                <button type="button" data-scenario="Joining a yoga class in Bali" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">峇里島瑜伽課</button>
+                <button type="button" data-scenario="Passing airport customs in Spain" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">西班牙過海關</button>
+                <button type="button" data-scenario="Having a meeting with a client from India" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">跟印度客戶開會</button>
+                <button type="button" data-scenario="First day as a DataCamp intern" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一天 DataCamp 實習</button>
+                <button type="button" data-scenario="Ordering at a café in Paris" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">巴黎咖啡廳點餐</button>
+                <button type="button" data-scenario="Bargaining at a street market in Thailand" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">泰國路邊攤殺價</button>
+                <button type="button" data-scenario="Checking into a hotel after a long flight" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">飯店 Check-in</button>
+            </div>
+        </div>
+    </div>
 
     <div id="delete-topic-dialog" class="hidden fixed inset-0 z-50 bg-[#355C7D]/35 backdrop-blur-sm px-5 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="delete-topic-title">
         <div class="w-full max-w-sm bg-white rounded-[20px] border border-[#D9D3C8] p-5 shadow-level2">
@@ -500,6 +525,7 @@
         const AI_DECK_STORAGE_KEY = 'vocab_matcher_ai_deck_v1';
         const VOCABULARY_MEMORY_KEY = 'vocab_matcher_memory_v1';
         const FAVORITES_STORAGE_KEY = 'vocab_matcher_favorites_v1';
+        const SCENARIO_TEXTAREA_MAX_HEIGHT = 120;
         const languageLocales = {
             English: 'en-US', German: 'de-DE', French: 'fr-FR', Spanish: 'es-ES',
             Italian: 'it-IT', Japanese: 'ja-JP', Korean: 'ko-KR'
@@ -1090,11 +1116,61 @@
             if (store.activeDeckId && database[`ai:${store.activeDeckId}`]) currentModuleKey = `ai:${store.activeDeckId}`;
         }
 
+        function setRandomScenarioPlaceholder() {
+            const placeholders = [
+                '例如：第一次在日本吃迴轉壽司...',
+                '例如：跟印度客戶開會...',
+                '例如：峇里島瑜伽課...',
+                '例如：尿急找廁所...',
+                '例如：第一次在酒吧點飲料...',
+                '例如：巴黎咖啡廳點餐...',
+                '例如：西班牙過海關...',
+                '例如：泰國路邊攤殺價...'
+            ];
+            document.getElementById('ai-topic').placeholder = placeholders[Math.floor(Math.random() * placeholders.length)];
+        }
+
+        function resizeScenarioTextarea() {
+            const topicInput = document.getElementById('ai-topic');
+            const countSelect = document.getElementById('ai-count');
+            topicInput.style.height = 'auto';
+            const singleLineHeight = countSelect.offsetHeight || topicInput.scrollHeight;
+            const nextHeight = Math.min(Math.max(topicInput.scrollHeight, singleLineHeight), SCENARIO_TEXTAREA_MAX_HEIGHT);
+            topicInput.style.height = `${nextHeight}px`;
+            topicInput.style.overflowY = topicInput.scrollHeight > SCENARIO_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+        }
+
+        function openScenarioPicker() {
+            const dialog = document.getElementById('scenario-picker-dialog');
+            dialog.classList.remove('hidden');
+            dialog.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeScenarioPicker() {
+            const dialog = document.getElementById('scenario-picker-dialog');
+            dialog.classList.add('hidden');
+            dialog.setAttribute('aria-hidden', 'true');
+        }
+
+        function handleScenarioPickerDismiss(event) {
+            const isBackdropClick = event.type === 'click' && event.target === event.currentTarget;
+            const isEscapeKey = event.type === 'keydown' && event.key === 'Escape';
+            if (isBackdropClick || isEscapeKey) closeScenarioPicker();
+        }
+
+        function selectScenario(button) {
+            closeScenarioPicker();
+            const topicInput = document.getElementById('ai-topic');
+            topicInput.value = button.dataset.scenario || '';
+            resizeScenarioTextarea();
+            topicInput.focus();
+        }
+
         function setGeneratorState(isLoading, message = '') {
             const button = document.getElementById('ai-generate-button');
             const error = document.getElementById('ai-generator-error');
             button.disabled = isLoading;
-            button.textContent = isLoading ? 'Generating your vocabulary deck…' : 'Generate Deck';
+            button.textContent = isLoading ? 'Building your vocabulary…' : 'Generate My Vocabulary';
             error.textContent = message;
             error.classList.toggle('hidden', !message);
         }
@@ -1256,7 +1332,7 @@
                 const count = filteredData.length;
 
                 const card = document.createElement('div');
-                card.className = 'bg-white border border-[#D9D3C8] rounded-[16px] p-4 shadow-level1 flex items-center justify-between cursor-pointer hover:border-[#355C7D] active:scale-[0.98] card-transition';
+                card.className = 'content-card shadow-level1 flex items-center justify-between cursor-pointer hover:border-[#355C7D] active:scale-[0.98] card-transition';
 
                 card.onclick = () => {
                     if (count === 0) {
@@ -1609,8 +1685,8 @@
 
             const iconDataUrl = (style === 'B') ? generateIconB() : generateIconA();
 
-            let linkIcon = document.querySelector("link[rel='icon']");
-            let linkApple = document.querySelector("link[rel='apple-touch-icon']");
+            const linkIcon = document.querySelector("link[rel='icon']");
+            const linkApple = document.querySelector("link[rel='apple-touch-icon']");
 
             if (linkIcon) linkIcon.href = iconDataUrl;
             if (linkApple) linkApple.href = iconDataUrl;
@@ -1624,6 +1700,11 @@
         migrateVocabularyMemoryContexts();
         restoreAiDeck();
         favoritesStore = loadFavoritesStore();
+        setRandomScenarioPlaceholder();
+        document.getElementById('ai-topic').addEventListener('input', resizeScenarioTextarea);
+        document.getElementById('scenario-picker-dialog').addEventListener('click', handleScenarioPickerDismiss);
+        document.addEventListener('keydown', handleScenarioPickerDismiss);
+        resizeScenarioTextarea();
         document.getElementById('ai-generator-form').addEventListener('submit', generateAiDeck);
         updateBadges();
         showView('home');
