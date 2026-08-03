@@ -118,27 +118,29 @@ export default async function handler(req, res) {
   }
 
   const levelGuidance = {
-    A1: 'Choose essential domain terms. Use very simple definitions, explanations, surrounding language, and short examples.',
-    A2: 'Choose common domain terms. Use simple definitions and practical examples.',
-    B1: 'Include broader terminology and useful collocations. Use clear definitions and natural contextual examples.',
-    B2: 'Include nuanced terminology, idiomatic usage, and advanced domain expressions with appropriately detailed explanations.',
-    C1: 'Include advanced specialist terminology and precise natural usage with sophisticated explanations and examples.',
+    A1: 'Choose essential terms and use very short, simple conversational examples.',
+    A2: 'Choose common practical terms and use simple real-life examples.',
+    B1: 'Include broader terminology and useful collocations with natural contextual examples.',
+    B2: 'Include nuanced terminology, idiomatic usage, and advanced domain expressions with natural examples.',
+    C1: 'Include advanced specialist terminology and precise, sophisticated natural usage.',
     C2: 'Include highly precise specialist terminology, subtle distinctions, and expert-level natural usage.'
   };
 
   const prompt = [
     `Create exactly ${count} distinct ${language} vocabulary items about the topic: ${JSON.stringify(topic)}.`,
-    `Apply CEFR level ${level} to the difficulty of definitions, explanations, example sentences, and surrounding language: ${levelGuidance[level]}`,
+    `Apply CEFR level ${level} to vocabulary selection and example-sentence difficulty: ${levelGuidance[level]}`,
     'CEFR level must not exclude essential domain-specific terminology. The usefulness and real-world frequency of a domain term take priority over whether the isolated term appears on a general CEFR vocabulary list.',
     'For specialized topics such as yoga, tennis, medicine, design, technology, cooking, or music, prioritize terms that are genuinely common and useful in that domain. Prefer beginner-relevant domain terms unless the user explicitly requests advanced terminology.',
     'Include essential loanwords, proper technical terms, and terms originating in other languages when they are commonly used. Never replace an essential domain term with an overly generic beginner word merely to satisfy the CEFR level.',
-    `Apply CEFR ${level} to the target-language examples and surrounding language, not to the length of the Traditional Chinese translation. Each example must be natural, written in ${language}, and appropriate for CEFR ${level}.`,
-    'For the meaning field, return only the most common and natural Traditional Chinese translation a native Taiwanese speaker would expect on a flashcard.',
-    'The meaning field is a translation, not a definition: do not explain the word, describe its usage, give legal or formal definitions, add notes, or write a sentence.',
-    'Prefer 2–6 Chinese characters. Use up to 10 Chinese characters only when a shorter translation would lose the meaning. Never generate paragraph-style meanings.',
-    'Do not add punctuation unless it is part of the translated term. Never begin a meaning with 指、用於、表示、指的是、用來、用以、證明、一種.',
-    'Translation examples: Financial means → 財力證明; Return ticket → 回程機票; Boarding pass → 登機證; Customs declaration → 海關申報; Carry-on baggage → 隨身行李; Emergency exit → 緊急出口; Passport → 護照; Check in → 辦理報到.',
-    'When the target language is English, use in the word field the English form commonly used by English speakers, including the established English form of a loanword or borrowed technical term.',
+    'This is a flashcard app, not a dictionary. Each output field has exactly one responsibility and must not duplicate another field.',
+    `word: Return the most natural and useful ${language} word or short phrase for this situation. Avoid long expressions unless they are genuinely necessary. When the language is English, use the form commonly used by English speakers, including established loanwords and technical terms.`,
+    'ipa: Return standard IPA for the word or phrase. Use an empty string only when IPA is not appropriate.',
+    'pos: Return exactly one concise part-of-speech value, such as noun, verb, adjective, adverb, or phrase.',
+    'meaning: Answer only “What does this mean?” Return the single most common, natural Traditional Chinese translation used in Taiwan.',
+    'meaning must be a flashcard translation, never a definition. Do not explain usage, describe a situation, give legal or formal definitions, add notes, or write a complete sentence.',
+    'Keep meaning concise: prefer 2–6 Chinese characters and use up to about 10 only when shortening would lose the meaning. Do not add punctuation. Never begin with 指、用於、表示、指的是、用來、用以、證明、一種.',
+    'Good meaning examples: Passport → 護照; Boarding pass → 登機證; Return ticket → 回程機票; Customs declaration → 海關申報; Financial means → 財力證明; Carry-on baggage → 隨身行李; Yoga mat → 瑜伽墊; Stress management → 壓力管理.',
+    `example: Answer only “How do I use it?” Return exactly one complete, natural ${language} sentence appropriate for CEFR ${level}. Make it sound like real conversation, not a textbook or dictionary, and avoid unnecessary complexity.`,
     knownWords.length
       ? `Prefer vocabulary the learner has not seen before. Avoid these known words when reasonable: ${JSON.stringify(knownWords)}. If avoiding all of them would reduce relevance or correctness, prioritize useful topic vocabulary.`
       : '',
