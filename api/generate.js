@@ -132,7 +132,12 @@ export default async function handler(req, res) {
     'CEFR level must not exclude essential domain-specific terminology. The usefulness and real-world frequency of a domain term take priority over whether the isolated term appears on a general CEFR vocabulary list.',
     'For specialized topics such as yoga, tennis, medicine, design, technology, cooking, or music, prioritize terms that are genuinely common and useful in that domain. Prefer beginner-relevant domain terms unless the user explicitly requests advanced terminology.',
     'Include essential loanwords, proper technical terms, and terms originating in other languages when they are commonly used. Never replace an essential domain term with an overly generic beginner word merely to satisfy the CEFR level.',
-    `Meanings must be concise Traditional Chinese at CEFR ${level} explanatory difficulty. Each example must be natural, written in ${language}, and appropriate for CEFR ${level}.`,
+    `Apply CEFR ${level} to the target-language examples and surrounding language, not to the length of the Traditional Chinese translation. Each example must be natural, written in ${language}, and appropriate for CEFR ${level}.`,
+    'For the meaning field, return only the most common and natural Traditional Chinese translation a native Taiwanese speaker would expect on a flashcard.',
+    'The meaning field is a translation, not a definition: do not explain the word, describe its usage, give legal or formal definitions, add notes, or write a sentence.',
+    'Prefer 2–6 Chinese characters. Use up to 10 Chinese characters only when a shorter translation would lose the meaning. Never generate paragraph-style meanings.',
+    'Do not add punctuation unless it is part of the translated term. Never begin a meaning with 指、用於、表示、指的是、用來、用以、證明、一種.',
+    'Translation examples: Financial means → 財力證明; Return ticket → 回程機票; Boarding pass → 登機證; Customs declaration → 海關申報; Carry-on baggage → 隨身行李; Emergency exit → 緊急出口; Passport → 護照; Check in → 辦理報到.',
     'When the target language is English, use in the word field the English form commonly used by English speakers, including the established English form of a loanword or borrowed technical term.',
     knownWords.length
       ? `Prefer vocabulary the learner has not seen before. Avoid these known words when reasonable: ${JSON.stringify(knownWords)}. If avoiding all of them would reduce relevance or correctness, prioritize useful topic vocabulary.`
