@@ -219,7 +219,7 @@
                     <div class="grid grid-cols-2 gap-2.5">
                         <label class="meta-text">目標語言
                             <select id="ai-language" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
-                                <option>English</option><option>German</option><option>French</option><option>Spanish</option><option>Italian</option><option>Japanese</option><option>Korean</option>
+                                <option>English</option><option>Japanese</option><option>Korean</option><option>Thai</option><option>Indonesian</option><option>German</option><option>French</option><option>Spanish</option><option>Italian</option>
                             </select>
                         </label>
                         <label class="meta-text">CEFR 程度
@@ -238,13 +238,22 @@
                             </select>
                         </label>
                     </div>
-                    <div class="pt-0.5 text-xs">
-                        <button type="button" onclick="openScenarioPicker()" class="text-[#777777] underline underline-offset-2 hover:text-[#2D3748]">瀏覽情境</button>
-                    </div>
                     <p id="ai-generator-error" class="hidden text-xs text-[#E65A5A]" role="alert"></p>
                     <button id="ai-generate-button" type="submit" class="w-full py-3 mt-1 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
                         Generate My Vocabulary
                     </button>
+                    <div class="pt-3 border-t border-[#ECE7DE]">
+                        <h4 class="text-sm font-semibold text-[#355C7D]">不知道怎麼開始？</h4>
+                        <p class="meta-text mt-0.5">看看情境範例，或直接建立自己的情境。</p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button type="button" data-scenario="First time ordering at a conveyor belt sushi restaurant in Japan" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">第一次在日本吃迴轉壽司</button>
+                            <button type="button" data-scenario="Ordering your first drink at a bar" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">第一次在酒吧點飲料</button>
+                            <button type="button" data-scenario="Joining a yoga class in Bali" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">峇里島瑜伽課</button>
+                            <button type="button" data-scenario="Passing airport customs in Spain" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">西班牙過海關</button>
+                            <button type="button" data-scenario="Bargaining at a street market in Thailand" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">泰國路邊攤殺價</button>
+                            <button type="button" data-scenario="Checking into a hotel after a long flight" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">飯店 Check-in</button>
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -309,6 +318,12 @@
                     <div id="right-meanings-col" class="flex flex-col gap-2.5"></div>
                 </div>
             </div>
+        </section>
+
+        <section id="view-match-empty" class="hidden bg-white rounded-[24px] p-6 border border-[#D9D3C8] shadow-level1 text-center space-y-3 my-auto">
+            <h2 class="text-lg font-semibold text-[#355C7D]">No vocabulary to match yet</h2>
+            <p class="meta-text">Create a scenario first, then come back to practice.</p>
+            <button type="button" onclick="showView('home')" class="px-5 py-3 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1">Create a Scenario</button>
         </section>
 
         <!-- 視圖 4: 完成通關卡 -->
@@ -426,27 +441,6 @@
 
     </main>
 
-    <div id="scenario-picker-dialog" class="hidden fixed inset-0 z-50 bg-[#355C7D]/35 px-5 flex items-center justify-center" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="scenario-picker-title">
-        <div class="w-full max-w-sm max-h-[80vh] overflow-y-auto bg-white rounded-[20px] border border-[#D9D3C8] p-5 shadow-level2">
-            <div class="flex items-center justify-between mb-4">
-                <h2 id="scenario-picker-title" class="font-display text-xl text-[#355C7D]">瀏覽情境</h2>
-                <button type="button" onclick="closeScenarioPicker()" class="w-8 h-8 flex items-center justify-center rounded-full text-xl leading-none text-[#777777] hover:bg-[#ECE7DE]" aria-label="關閉情境選擇器">×</button>
-            </div>
-            <div class="divide-y divide-[#ECE7DE]">
-                <button type="button" data-scenario="First time ordering at a conveyor belt sushi restaurant in Japan" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一次在日本吃迴轉壽司</button>
-                <button type="button" data-scenario="Ordering your first drink at a bar" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一次在酒吧點飲料</button>
-                <button type="button" data-scenario="Need to find a toilet urgently and ask for directions" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">尿急找廁所</button>
-                <button type="button" data-scenario="Joining a yoga class in Bali" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">峇里島瑜伽課</button>
-                <button type="button" data-scenario="Passing airport customs in Spain" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">西班牙過海關</button>
-                <button type="button" data-scenario="Having a meeting with a client from India" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">跟印度客戶開會</button>
-                <button type="button" data-scenario="First day as a DataCamp intern" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">第一天 DataCamp 實習</button>
-                <button type="button" data-scenario="Ordering at a café in Paris" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">巴黎咖啡廳點餐</button>
-                <button type="button" data-scenario="Bargaining at a street market in Thailand" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">泰國路邊攤殺價</button>
-                <button type="button" data-scenario="Checking into a hotel after a long flight" onclick="selectScenario(this)" class="w-full py-3 text-left text-sm text-[#355C7D] hover:bg-[#FFFDF8]">飯店 Check-in</button>
-            </div>
-        </div>
-    </div>
-
     <div id="delete-topic-dialog" class="hidden fixed inset-0 z-50 bg-[#355C7D]/35 backdrop-blur-sm px-5 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="delete-topic-title">
         <div class="w-full max-w-sm bg-white rounded-[20px] border border-[#D9D3C8] p-5 shadow-level2">
             <h2 id="delete-topic-title" class="font-display text-xl text-[#355C7D]">Delete Topic?</h2>
@@ -464,10 +458,6 @@
         <button onclick="switchBottomTab('home')" id="nav-home" class="flex flex-col items-center justify-center w-16 text-[#355C7D] transition">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
             <span class="text-[12px] font-medium mt-0.5">Home</span>
-        </button>
-        <button onclick="switchBottomTab('match')" id="nav-match" class="flex flex-col items-center justify-center w-16 text-[#777777] hover:text-[#355C7D] transition">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="15" rx="2" transform="rotate(-6 3 5)"/><rect x="8" y="4" width="13" height="15" rx="2"/><path d="M11 9h5M11 13h3"/></svg>
-            <span class="text-[12px] font-medium mt-0.5">Match</span>
         </button>
         <button onclick="switchBottomTab('review')" id="nav-review" class="flex flex-col items-center justify-center w-16 text-[#777777] hover:text-[#355C7D] transition">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
@@ -528,7 +518,8 @@
         const SCENARIO_TEXTAREA_MAX_HEIGHT = 120;
         const languageLocales = {
             English: 'en-US', German: 'de-DE', French: 'fr-FR', Spanish: 'es-ES',
-            Italian: 'it-IT', Japanese: 'ja-JP', Korean: 'ko-KR'
+            Italian: 'it-IT', Japanese: 'ja-JP', Korean: 'ko-KR',
+            Thai: 'th-TH', Indonesian: 'id-ID'
         };
 
         let favoritesStore = { version: 1, items: {} };
@@ -1140,26 +1131,7 @@
             topicInput.style.overflowY = topicInput.scrollHeight > SCENARIO_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
         }
 
-        function openScenarioPicker() {
-            const dialog = document.getElementById('scenario-picker-dialog');
-            dialog.classList.remove('hidden');
-            dialog.setAttribute('aria-hidden', 'false');
-        }
-
-        function closeScenarioPicker() {
-            const dialog = document.getElementById('scenario-picker-dialog');
-            dialog.classList.add('hidden');
-            dialog.setAttribute('aria-hidden', 'true');
-        }
-
-        function handleScenarioPickerDismiss(event) {
-            const isBackdropClick = event.type === 'click' && event.target === event.currentTarget;
-            const isEscapeKey = event.type === 'keydown' && event.key === 'Escape';
-            if (isBackdropClick || isEscapeKey) closeScenarioPicker();
-        }
-
         function selectScenario(button) {
-            closeScenarioPicker();
             const topicInput = document.getElementById('ai-topic');
             topicInput.value = button.dataset.scenario || '';
             resizeScenarioTextarea();
@@ -1267,7 +1239,7 @@
         }
 
         function showView(viewId) {
-            const views = ['home', 'preview', 'game', 'complete', 'review', 'profile'];
+            const views = ['home', 'preview', 'game', 'match-empty', 'complete', 'review', 'profile'];
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 if (el) el.classList.add('hidden');
@@ -1282,7 +1254,7 @@
         }
 
         function switchBottomTab(tab) {
-            const tabs = ['home', 'match', 'review', 'profile'];
+            const tabs = ['home', 'review', 'profile'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`nav-${t}`);
                 if (btn) {
@@ -1293,10 +1265,6 @@
             if (activeBtn) activeBtn.classList.replace('text-[#777777]', 'text-[#355C7D]');
 
             if (tab === 'home') showView('home');
-            if (tab === 'match') {
-                if (!currentModuleKey || !database[currentModuleKey]?.data.length) showView('home');
-                else initRoundSession();
-            }
             if (tab === 'review') openFavoritesReview();
             if (tab === 'profile') showView('profile');
         }
@@ -1423,8 +1391,7 @@
 
             const availableWords = getFilteredWordsForModule(currentModuleKey);
             if (availableWords.length === 0) {
-                alert('目前選取的範疇沒有單字可供練習！');
-                showView('home');
+                showView('match-empty');
                 return;
             }
 
@@ -1702,8 +1669,6 @@
         favoritesStore = loadFavoritesStore();
         setRandomScenarioPlaceholder();
         document.getElementById('ai-topic').addEventListener('input', resizeScenarioTextarea);
-        document.getElementById('scenario-picker-dialog').addEventListener('click', handleScenarioPickerDismiss);
-        document.addEventListener('keydown', handleScenarioPickerDismiss);
         resizeScenarioTextarea();
         document.getElementById('ai-generator-form').addEventListener('submit', generateAiDeck);
         updateBadges();

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 
 const MODEL = 'gemini-3.6-flash';
-const LANGUAGES = new Set(['English', 'German', 'French', 'Spanish', 'Italian', 'Japanese', 'Korean']);
+const LANGUAGES = new Set(['English', 'German', 'French', 'Spanish', 'Italian', 'Japanese', 'Korean', 'Thai', 'Indonesian']);
 const LEVELS = new Set(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 const COUNTS = new Set([10, 20, 30, 50]);
 const REQUEST_TIMEOUT_MS = 45000;
