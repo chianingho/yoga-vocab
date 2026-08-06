@@ -189,6 +189,12 @@
         .animate-snap { animation: snapPop 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
         .hide-scroll::-webkit-scrollbar { display: none; }
+        .meaning-clamp {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto relative overflow-x-hidden border-x border-[#ECE7DE]">
@@ -212,8 +218,8 @@
         <section id="view-home" class="space-y-5 my-auto">
             <div class="content-card shadow-level1 space-y-3">
                 <div>
-                    <h2 class="font-display text-2xl text-[#355C7D] leading-tight">用真實情境，學會現在需要的單字</h2>
-                    <p class="meta-text mt-1">輸入你即將遇到的情境，建立單字後再用配對快速練習。</p>
+                    <h2 class="font-display text-2xl text-[#355C7D] leading-tight">用情境學單字</h2>
+                    <p class="meta-text mt-1">輸入真實情境，建立需要的單字並開始配對練習。</p>
                 </div>
                 <form id="ai-generator-form" class="space-y-2.5" novalidate>
                     <div class="grid grid-cols-2 items-end gap-2.5">
@@ -251,7 +257,6 @@
                     <button id="ai-generate-button" type="submit" class="w-full py-3 mt-1 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
                         建立我的單字
                     </button>
-                    <p class="pt-1 text-center text-xs font-medium text-[#777777]">建立情境 <span aria-hidden="true">→</span> 預覽單字 <span aria-hidden="true">→</span> 配對練習</p>
                 </form>
             </div>
 
@@ -1353,7 +1358,7 @@
                             <span class="text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${escapeHTML(item.pos)}</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium text-[#2D3748]">${escapeHTML(item.meaning)}</span>
+                            <span class="meaning-clamp max-w-[45%] text-sm font-medium text-[#2D3748]">${escapeHTML(item.meaning)}</span>
                             <button onclick="speak('${escapeInlineJs(item.word)}')" class="p-1 text-[#355C7D] hover:scale-110 active:scale-95 transition" aria-label="發音">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                             </button>
@@ -1423,7 +1428,7 @@
                 const card = document.createElement('div');
                 const fontClass = getFontSize(c.text);
                 card.className = 'state-default rounded-[16px] h-[64px] px-2 flex items-center justify-center text-center font-semibold shadow-level1 cursor-pointer card-transition active:scale-[0.96] select-none';
-                card.innerHTML = `<span class="${fontClass} text-center break-words leading-snug px-1">${escapeHTML(c.text)}</span>`;
+                card.innerHTML = `<span class="meaning-clamp ${fontClass} text-center break-words leading-snug px-1">${escapeHTML(c.text)}</span>`;
                 card.onclick = () => handleCardClick(card, c);
                 rightCol.appendChild(card);
             });
