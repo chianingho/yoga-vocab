@@ -550,9 +550,71 @@
             return escapeHTML(String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\r\n]+/g, ' '));
         }
 
+        function isMeaningLikelyExplanation(value, exampleTranslation = '') {
+            const meaning = typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+            const translatedExample = typeof exampleTranslation === 'string' ? exampleTranslation.trim().replace(/\s+/g, ' ') : '';
+            return meaning.length > 16
+                || /(?:意思是|意思為|指的是|通常指|用來|一種|也就是|可以理解為|。)/.test(meaning)
+                || Boolean(meaning && translatedExample && meaning === translatedExample);
+        }
+
+        function normalizeMeaning(value, exampleTranslation = '') {
+            const original = typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+            const cleaned = original
+                .replace(/^(?:中文意思是|可以理解為|用來表示|意思是|意思為|指的是|通常指|表示)\s*/, '')
+                .split(/[。；\n（(]|，(?=指|也就是|通常|用來)/)[0]
+                .trim()
+                .replace(/[，,、：:；;。.!！?？]+$/, '')
+                .trim();
+            const conciseMatch = cleaned.match(/(?:辦理|進行|取得|提供)([\p{Script=Han}]{2,8}?)(?:的)?(?:過程|手續|文件|方式|行為)$/u);
+            const meaning = conciseMatch?.[1] || cleaned;
+            if (isMeaningLikelyExplanation(original, exampleTranslation)
+                && ['localhost', '127.0.0.1'].includes(location.hostname)) {
+                console.warn('[vocab-matcher] Suspicious stored meaning normalized:', original, '→', meaning);
+            }
+            return meaning;
+        }
+
+        function isValidExample(value) {
+            const example = typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
+            return Boolean(example) && !/^(?:\.{3}|…+)$/.test(example) && !/(?:\.{3}|…)\s*$/.test(example);
+        }
+
+        function normalizeVocabularyItem(item) {
+            if (!item || typeof item !== 'object') return null;
+            const rawExampleTranslation = typeof item.exampleTranslation === 'string' ? item.exampleTranslation.trim().replace(/\s+/g, ' ') : '';
+            const rawExample = typeof item.example === 'string' ? item.example.trim().replace(/\s+/g, ' ') : '';
+            if (rawExample && !isValidExample(rawExample) && ['localhost', '127.0.0.1'].includes(location.hostname)) {
+                console.warn('[vocab-matcher] Incomplete example hidden:', rawExample);
+            }
+            return {
+                ...item,
+                word: typeof item.word === 'string' ? item.word.trim() : '',
+                ipa: typeof item.ipa === 'string' ? item.ipa.trim() : '',
+                pos: typeof item.pos === 'string' ? item.pos.trim() : '',
+                meaning: normalizeMeaning(item.meaning, rawExampleTranslation),
+                example: isValidExample(rawExample) ? rawExample : '',
+                exampleTranslation: isValidExample(rawExampleTranslation) ? rawExampleTranslation : ''
+            };
+        }
+
         function isValidWord(item) {
             return item && ['word', 'ipa', 'pos', 'meaning', 'example'].every(key => typeof item[key] === 'string')
-                && item.word.trim() && item.meaning.trim() && item.example.trim();
+                && item.word.trim() && item.meaning.trim();
+        }
+
+        function normalizeVocabularyMemory(memory) {
+            Object.values(memory.words || {}).forEach(entry => {
+                entry.meaning = normalizeMeaning(entry.meaning, entry.exampleTranslation);
+                entry.example = isValidExample(entry.example) ? entry.example.trim().replace(/\s+/g, ' ') : '';
+                entry.exampleTranslation = isValidExample(entry.exampleTranslation) ? entry.exampleTranslation.trim().replace(/\s+/g, ' ') : '';
+                if (Array.isArray(entry.contexts)) entry.contexts.forEach(context => {
+                    context.meaning = normalizeMeaning(context.meaning, context.exampleTranslation);
+                    context.example = isValidExample(context.example) ? context.example.trim().replace(/\s+/g, ' ') : '';
+                    context.exampleTranslation = isValidExample(context.exampleTranslation) ? context.exampleTranslation.trim().replace(/\s+/g, ' ') : '';
+                });
+            });
+            return memory;
         }
 
         function createEmptyVocabularyMemory() {
@@ -566,6 +628,9 @@
                     return createEmptyVocabularyMemory();
                 }
                 parsed.migrations = parsed.migrations && typeof parsed.migrations === 'object' ? parsed.migrations : {};
+                const before = JSON.stringify(parsed);
+                normalizeVocabularyMemory(parsed);
+                if (JSON.stringify(parsed) !== before) localStorage.setItem(VOCABULARY_MEMORY_KEY, JSON.stringify(parsed));
                 return parsed;
             } catch (error) {
                 return createEmptyVocabularyMemory();
@@ -574,6 +639,7 @@
 
         function saveVocabularyMemory(memory) {
             try {
+                normalizeVocabularyMemory(memory);
                 localStorage.setItem(VOCABULARY_MEMORY_KEY, JSON.stringify(memory));
                 vocabularyMemory = memory;
                 return true;
@@ -589,13 +655,23 @@
         function loadFavoritesStore() {
             try {
                 const parsed = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY));
-                if (parsed?.version === 1 && parsed.items && typeof parsed.items === 'object' && !Array.isArray(parsed.items)) return parsed;
+                if (parsed?.version === 1 && parsed.items && typeof parsed.items === 'object' && !Array.isArray(parsed.items)) {
+                    const before = JSON.stringify(parsed);
+                    Object.values(parsed.items).forEach(favorite => {
+                        favorite.item = normalizeVocabularyItem(favorite.item);
+                    });
+                    if (JSON.stringify(parsed) !== before) localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(parsed));
+                    return parsed;
+                }
             } catch (error) {}
             return { version: 1, items: {} };
         }
 
         function saveFavoritesStore() {
             try {
+                Object.values(favoritesStore.items).forEach(favorite => {
+                    favorite.item = normalizeVocabularyItem(favorite.item);
+                });
                 localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favoritesStore));
                 return true;
             } catch (error) {
@@ -632,7 +708,7 @@
         function hasUsableContext(context) {
             return context && typeof context.topic === 'string' && context.topic.trim()
                 && typeof context.meaning === 'string' && context.meaning.trim()
-                && typeof context.example === 'string' && context.example.trim();
+                && typeof context.example === 'string';
         }
 
         // Need Review source-of-truth: wrongCount > 0 AND mastery < 80, with one real generated context per normalized word.
@@ -652,7 +728,8 @@
                     ipa: context.phonetic || '',
                     pos: context.pos || 'word',
                     meaning: context.meaning,
-                    example: context.example,
+                    example: context.example || '',
+                    exampleTranslation: context.exampleTranslation || '',
                     _contextId: context.id,
                     _topic: context.topic,
                     _level: context.level,
@@ -697,7 +774,9 @@
         }
 
         function convertLegacyCustomDeck(saved) {
-            if (!saved || !Array.isArray(saved.words) || !saved.words.length || !saved.words.every(isValidWord)) return createEmptyCustomDeckStore();
+            if (!saved || !Array.isArray(saved.words)) return createEmptyCustomDeckStore();
+            const normalizedWords = saved.words.map(normalizeVocabularyItem).filter(isValidWord);
+            if (!normalizedWords.length) return createEmptyCustomDeckStore();
             const titleParts = typeof saved.title === 'string' ? saved.title.split(' · ') : [];
             const topic = saved.topic || titleParts[0] || 'AI Generated Deck';
             const level = saved.level || titleParts[1] || '';
@@ -715,7 +794,7 @@
                         title: saved.title || `${topic} · ${level}`,
                         createdAt: saved.createdAt || new Date().toISOString(),
                         updatedAt: saved.createdAt || new Date().toISOString(),
-                        words: saved.words
+                        words: normalizedWords
                     }
                 }
             };
@@ -725,6 +804,11 @@
             try {
                 const saved = JSON.parse(localStorage.getItem(AI_DECK_STORAGE_KEY));
                 if (saved?.version === 2 && saved.decks && typeof saved.decks === 'object' && !Array.isArray(saved.decks)) {
+                    const before = JSON.stringify(saved);
+                    Object.values(saved.decks).forEach(deck => {
+                        deck.words = Array.isArray(deck.words) ? deck.words.map(normalizeVocabularyItem).filter(isValidWord) : [];
+                    });
+                    if (JSON.stringify(saved) !== before) localStorage.setItem(AI_DECK_STORAGE_KEY, JSON.stringify(saved));
                     return saved;
                 }
                 const migrated = convertLegacyCustomDeck(saved);
@@ -737,6 +821,9 @@
 
         function saveCustomDeckStore(store) {
             try {
+                Object.values(store.decks || {}).forEach(deck => {
+                    deck.words = Array.isArray(deck.words) ? deck.words.map(normalizeVocabularyItem).filter(isValidWord) : [];
+                });
                 localStorage.setItem(AI_DECK_STORAGE_KEY, JSON.stringify(store));
                 return true;
             } catch (error) {
@@ -746,11 +833,11 @@
 
         function mergeCustomDeckWords(previousWords, generatedWords) {
             const merged = new Map();
-            previousWords.forEach(item => {
+            previousWords.map(normalizeVocabularyItem).forEach(item => {
                 const key = normalizeWordKey(item?.word);
                 if (key && isValidWord(item) && !merged.has(key)) merged.set(key, item);
             });
-            generatedWords.forEach(item => {
+            generatedWords.map(normalizeVocabularyItem).forEach(item => {
                 const key = normalizeWordKey(item?.word);
                 if (!key || !isValidWord(item)) return;
                 const previous = merged.get(key);
@@ -759,14 +846,17 @@
                     ipa: item.ipa.trim() || previous.ipa,
                     pos: item.pos.trim() || previous.pos,
                     meaning: item.meaning.trim() || previous.meaning,
-                    example: item.example.trim() || previous.example
+                    example: item.example.trim() || previous.example,
+                    exampleTranslation: item.exampleTranslation?.trim() || previous.exampleTranslation || ''
                 } : item);
             });
             return [...merged.values()];
         }
 
         function registerCustomDeck(deck) {
-            if (!deck || !Array.isArray(deck.words) || !deck.words.length || !deck.words.every(isValidWord)) return null;
+            if (!deck || !Array.isArray(deck.words)) return null;
+            deck.words = deck.words.map(normalizeVocabularyItem).filter(isValidWord);
+            if (!deck.words.length) return null;
             const moduleKey = `ai:${deck.id}`;
             database[moduleKey] = {
                 title: deck.title || `${deck.topic} · ${deck.level}`,
@@ -1157,7 +1247,8 @@
                 });
                 const payload = await response.json().catch(() => ({}));
                 if (!response.ok) throw new Error(payload.error || '無法產生單字牌組，請稍後再試。');
-                if (!Array.isArray(payload.words) || payload.words.length < 1 || !payload.words.every(isValidWord)) {
+                payload.words = Array.isArray(payload.words) ? payload.words.map(normalizeVocabularyItem).filter(isValidWord) : [];
+                if (payload.words.length < 1) {
                     throw new Error('伺服器傳回的單字格式不完整，請重試。');
                 }
 
@@ -1192,7 +1283,7 @@
                     level: context.level,
                     language: context.language,
                     starredAt: new Date().toISOString(),
-                    item: { word: item.word, ipa: item.ipa, pos: item.pos, meaning: item.meaning, example: item.example }
+                    item: { word: item.word, ipa: item.ipa, pos: item.pos, meaning: item.meaning, example: item.example, exampleTranslation: item.exampleTranslation || '' }
                 };
             }
             saveFavoritesStore();
@@ -1345,6 +1436,8 @@
 
             fullSession10Words.forEach(item => {
                 const isFav = isFavorite(item);
+                const hasExample = isValidExample(item.example);
+                const hasExampleTranslation = isValidExample(item.exampleTranslation);
                 const row = document.createElement('div');
                 row.className = 'min-w-0 bg-[#FFFDF8] border border-[#ECE7DE] rounded-xl p-3 sm:p-3.5 shadow-level1';
                 row.innerHTML = `
@@ -1362,10 +1455,12 @@
                         ${item.pos ? `<span class="shrink-0 text-xs bg-[#ECE7DE] text-[#355C7D] px-1.5 py-0.5 rounded font-medium">${escapeHTML(item.pos)}</span>` : ''}
                     </div>
                     <p class="mt-2 min-w-0 truncate text-sm font-medium text-[#2D3748]" title="${escapeHTML(item.meaning)}">${escapeHTML(item.meaning)}</p>
-                    <div class="mt-3 min-w-0 border-t border-[#ECE7DE] pt-2 space-y-1">
-                        <p class="min-w-0 truncate text-xs text-[#555555]" title="${escapeHTML(item.example)}">${escapeHTML(item.example)}</p>
-                        ${item.exampleTranslation ? `<p class="min-w-0 truncate text-xs text-[#777777]" title="${escapeHTML(item.exampleTranslation)}">${escapeHTML(item.exampleTranslation)}</p>` : ''}
-                    </div>
+                    ${hasExample ? `
+                        <div class="mt-3 min-w-0 border-t border-[#ECE7DE] pt-2 space-y-1">
+                            <p class="min-w-0 whitespace-normal overflow-visible text-clip [overflow-wrap:anywhere] break-normal text-xs text-[#555555]">${escapeHTML(item.example)}</p>
+                            ${hasExampleTranslation ? `<p class="min-w-0 whitespace-normal overflow-visible text-clip [overflow-wrap:anywhere] break-normal text-xs text-[#777777]">${escapeHTML(item.exampleTranslation)}</p>` : ''}
+                        </div>
+                    ` : ''}
                 `;
                 previewContainer.appendChild(row);
             });

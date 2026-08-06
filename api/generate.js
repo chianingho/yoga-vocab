@@ -21,7 +21,10 @@ const responseSchema = {
           word: { type: 'string' },
           ipa: { type: 'string' },
           pos: { type: 'string' },
-          meaning: { type: 'string' },
+          meaning: {
+            type: 'string',
+            description: 'A concise Traditional Chinese translation only, not a definition or explanation.'
+          },
           example: { type: 'string' }
         },
         required: ['word', 'meaning', 'example']
@@ -39,24 +42,34 @@ function cleanString(value, maxLength = 500) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
-export function cleanMeaning(value, shorterTranslation = '') {
-  const normalize = candidate => cleanString(candidate, 240)
-    .replace(/^(?:可以理解為|用來表示|意思是|指的是|通常指|表示)\s*/u, '')
-    .split(/[。；\n（(]/u)[0]
+export function isMeaningLikelyExplanation(value, exampleTranslation = '') {
+  const meaning = cleanString(value, 240).replace(/\s+/gu, ' ');
+  const translatedExample = cleanString(exampleTranslation, 500).replace(/\s+/gu, ' ');
+  return meaning.length > 16
+    || /(?:意思是|意思為|指的是|通常指|用來|一種|也就是|可以理解為|。)/u.test(meaning)
+    || Boolean(meaning && translatedExample && meaning === translatedExample);
+}
+
+export function normalizeMeaning(value, exampleTranslation = '') {
+  const original = cleanString(value, 240).replace(/\s+/gu, ' ');
+  const cleaned = original
+    .replace(/^(?:中文意思是|可以理解為|用來表示|意思是|意思為|指的是|通常指|表示)\s*/u, '')
+    .split(/[。；\n（(]|，(?=指|也就是|通常|用來)/u)[0]
     .trim()
     .replace(/[，,、：:；;。.!！?？]+$/u, '')
     .trim();
+  const conciseMatch = cleaned.match(/(?:辦理|進行|取得|提供)([\p{Script=Han}]{2,8}?)(?:的)?(?:過程|手續|文件|方式|行為)$/u);
+  const meaning = conciseMatch?.[1] || cleaned;
 
-  const meaning = normalize(value);
-  const alternative = normalize(shorterTranslation);
-  const selected = meaning.length > 16 && alternative && alternative.length < meaning.length
-    ? alternative
-    : meaning;
-
-  if (selected.length > 16 && process.env.NODE_ENV !== 'production') {
-    console.warn(`[vocab-matcher] Long meaning preserved: ${selected}`);
+  if (process.env.NODE_ENV !== 'production' && isMeaningLikelyExplanation(original, exampleTranslation)) {
+    console.warn(`[vocab-matcher] Suspicious meaning normalized for review: ${original} → ${meaning}`);
   }
-  return selected;
+  return meaning;
+}
+
+export function isValidExample(value) {
+  const example = cleanString(value, 500).replace(/\s+/gu, ' ');
+  return Boolean(example) && !/^(?:\.{3}|…+)$/u.test(example) && !/(?:\.{3}|…)\s*$/u.test(example);
 }
 
 export function normalizeWords(value) {
@@ -66,10 +79,11 @@ export function normalizeWords(value) {
   return value.words.reduce((words, item) => {
     if (!item || typeof item !== 'object') return words;
     const word = cleanString(item.word, 120);
-    const meaning = cleanMeaning(item.meaning, item.translation);
-    const example = cleanString(item.example, 500);
+    const meaning = normalizeMeaning(item.meaning, item.exampleTranslation);
+    const rawExample = cleanString(item.example, 500).replace(/\s+/gu, ' ');
+    const example = isValidExample(rawExample) ? rawExample : '';
     const identity = word.toLocaleLowerCase();
-    if (!word || !meaning || !example || seen.has(identity)) return words;
+    if (!word || !meaning || seen.has(identity)) return words;
 
     seen.add(identity);
     words.push({
@@ -156,11 +170,12 @@ export default async function handler(req, res) {
     `word: Return the most natural and useful ${language} word or short phrase for this situation. Avoid long expressions unless they are genuinely necessary. When the language is English, use the form commonly used by English speakers, including established loanwords and technical terms.`,
     'ipa: Return standard IPA for the word or phrase. Use an empty string only when IPA is not appropriate.',
     'pos: Return exactly one concise part-of-speech value, such as noun, verb, adjective, adverb, or phrase.',
-    'meaning: Return only the most direct Traditional Chinese translation commonly used in Taiwan. This field is the short answer shown on flashcards and in the matching game.',
-    'For a single word, keep meaning to 2–8 Chinese characters. For a phrase, use at most 12 Chinese characters. Only an exceptional sentence pattern may use up to 16 Chinese characters.',
-    'Never write a definition, explanation sentence, usage context, example, grammar note, list, or line break in meaning. Do not use parentheses or repeat the target-language word.',
-    'Never prefix meaning with 意思是、指的是、表示、用來表示、通常指、可以理解為. Do not end meaning with a full stop or other punctuation.',
-    'Good meaning examples: Passport → 護照; Boarding pass → 登機證; Return ticket → 回程機票; Customs declaration → 海關申報; Financial means → 財力證明; Carry-on baggage → 隨身行李; Yoga mat → 瑜伽墊; Stress management → 壓力管理.',
+    'The meaning field must contain only a concise Traditional Chinese translation.',
+    'meaning rules: Use Traditional Chinese used in Taiwan. Return the shortest natural translation. For a single word, use approximately 1–6 Chinese characters. For a phrase, use approximately 2–10 Chinese characters. For a complete sentence, use no more than 16 Chinese characters when possible.',
+    'Do not provide a definition, explain usage, describe the situation, include an example sentence, use parentheses, or add a line break in meaning. Keep meaning and example strictly separate.',
+    'Do not begin meaning with 意思是、意思為、指的是、通常指、表示、用來表示、可以理解為、中文意思是. Do not end with punctuation.',
+    'Correct meaning examples: reservation → 預約; boarding pass → 登機證; receipt → 收據; Could you say that again? → 可以再說一次嗎.',
+    'Incorrect meaning examples: reservation → 指事先保留餐廳或飯店位置的一種安排; boarding pass → 完成機場報到後用來登機的文件; receipt → 購物後由店家提供的交易證明.',
     `example: Answer only “How do I use it?” Return exactly one complete, natural ${language} sentence appropriate for CEFR ${level}. Make it sound like real conversation, not a textbook or dictionary, and avoid unnecessary complexity.`,
     knownWords.length
       ? `Prefer vocabulary the learner has not seen before. Avoid these known words when reasonable: ${JSON.stringify(knownWords)}. If avoiding all of them would reduce relevance or correctness, prioritize useful topic vocabulary.`
