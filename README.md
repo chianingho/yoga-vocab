@@ -14,7 +14,7 @@ Vocab Matcher 是一款情境式單字學習 Web App。
 
 ## Why I Built This
 
-這個專案起源於我需要參加一堂全英文的人體學課程。
+這個專案起源於我需要參加一堂全英文的YTT課程。
 
 課程中有大量陌生的專有名詞，但單純死背很痛苦。我很喜歡 Duolingo 的配對遊戲，因此開始思考：
 
@@ -33,14 +33,6 @@ Vocab Matcher 是一款情境式單字學習 Web App。
 ### 1. 輸入情境
 
 選擇目標語言、CEFR 程度與單字數量，再輸入即將遇到的真實情境。
-
-目前支援：
-
-* English
-* Japanese
-* Korean
-* Thai
-* Indonesian
 
 ### 2. 建立單字內容
 
