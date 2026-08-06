@@ -8,7 +8,7 @@ Vocab Matcher 是一款情境式單字學習 Web App。
 
 [Live Demo](https://yoga-vocab.vercel.app/) · [GitHub Repository](https://github.com/chianingho/yoga-vocab)
 
-![Create vocabulary from a real-life scenario](docs/images/01-create-scenario.png)
+<img src="docs/images/01-create-scenario.png" alt="Create vocabulary from a real-life scenario" width="360">
 
 ---
 
@@ -53,9 +53,9 @@ Vocab Matcher 是一款情境式單字學習 Web App。
 
 將目標語言單字與中文意思配對，錯誤紀錄會保留下來，供後續複習使用。
 
-![Review generated vocabulary before practicing](docs/images/02-vocabulary-preview.png)
+<img src="docs/images/02-vocabulary-preview.png" alt="Review generated vocabulary before practicing" width="360">
 
-![Practice vocabulary through a matching game](docs/images/03-matching-game.png)
+<img src="docs/images/03-matching-game.png" alt="Practice vocabulary through a matching game" width="360">
 
 ---
 
