@@ -212,30 +212,11 @@
         <section id="view-home" class="space-y-5 my-auto">
             <div class="content-card shadow-level1 space-y-3">
                 <div>
-                    <h2 class="font-display text-2xl text-[#355C7D] leading-tight">Learn the words you need for real-life situations.</h2>
-                    <p class="meta-text mt-1">Create a scenario, build your vocabulary, then practice with a quick matching game.</p>
+                    <h2 class="font-display text-2xl text-[#355C7D] leading-tight">用真實情境，學會現在需要的單字</h2>
+                    <p class="meta-text mt-1">輸入你即將遇到的情境，建立單字後再用配對快速練習。</p>
                 </div>
                 <form id="ai-generator-form" class="space-y-2.5" novalidate>
-                    <div class="text-xs text-[#777777]">
-                        <span>Need an idea?</span>
-                        <button id="scenario-examples-toggle" type="button" onclick="toggleScenarioExamples()" class="ml-1 underline underline-offset-2 hover:text-[#355C7D]" aria-expanded="false" aria-controls="scenario-examples">See examples</button>
-                        <div id="scenario-examples" class="hidden mt-2 flex flex-wrap gap-2">
-                            <button type="button" data-scenario="Ordering at a Japanese restaurant" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">Ordering at a Japanese restaurant</button>
-                            <button type="button" data-scenario="Passing customs in Spain" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">Passing customs in Spain</button>
-                            <button type="button" data-scenario="Joining a yoga class in Bali" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">Joining a yoga class in Bali</button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-[1fr_92px] gap-2.5">
-                        <label class="meta-text">What situation are you preparing for?
-                            <textarea id="ai-topic" rows="1" maxlength="120" required placeholder="e.g. Ordering tonkatsu in Japan" class="mt-1 w-full resize-none overflow-y-hidden rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm leading-5 text-[#355C7D] placeholder:text-[#777777] focus:outline-none focus:border-[#355C7D]"></textarea>
-                        </label>
-                        <label class="meta-text">單字數
-                            <select id="ai-count" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
-                                <option>10</option><option selected>20</option><option>30</option><option>50</option>
-                            </select>
-                        </label>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-2 items-end gap-2.5">
                         <label class="meta-text">目標語言
                             <select id="ai-language" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
                                 <option>English</option><option>Japanese</option><option>Korean</option><option>Thai</option><option>Indonesian</option><option>German</option><option>French</option><option>Spanish</option><option>Italian</option>
@@ -247,21 +228,31 @@
                             </select>
                         </label>
                     </div>
+                    <div class="text-xs text-[#777777]">
+                        <span>沒有靈感？</span>
+                        <button id="scenario-examples-toggle" type="button" onclick="toggleScenarioExamples()" class="ml-1 underline underline-offset-2 hover:text-[#355C7D]" aria-expanded="false" aria-controls="scenario-examples">查看情境範例</button>
+                        <div id="scenario-examples" class="hidden mt-2 flex flex-wrap gap-2">
+                            <button type="button" data-scenario="第一次在日本吃迴轉壽司" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">第一次在日本吃迴轉壽司</button>
+                            <button type="button" data-scenario="西班牙過海關" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">西班牙過海關</button>
+                            <button type="button" data-scenario="峇里島瑜伽課" onclick="selectScenario(this)" class="rounded-full border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-1.5 text-xs text-[#777777] hover:text-[#355C7D]">峇里島瑜伽課</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-[minmax(0,1fr)_92px] items-end gap-2.5">
+                        <label class="meta-text">主題
+                            <input id="ai-topic" type="text" maxlength="120" required placeholder="例如：第一次在日本吃迴轉壽司" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] placeholder:text-[#777777] focus:outline-none focus:border-[#355C7D]">
+                        </label>
+                        <label class="meta-text">單字數
+                            <select id="ai-count" class="mt-1 w-full rounded-xl border border-[#D9D3C8] bg-[#FFFDF8] px-3 py-2.5 text-sm text-[#355C7D] focus:outline-none focus:border-[#355C7D]">
+                                <option>10</option><option selected>20</option><option>30</option><option>50</option>
+                            </select>
+                        </label>
+                    </div>
                     <p id="ai-generator-error" class="hidden text-xs text-[#E65A5A]" role="alert"></p>
                     <button id="ai-generate-button" type="submit" class="w-full py-3 mt-1 bg-[#355C7D] text-white font-semibold text-sm rounded-[14px] active:scale-[0.97] transition shadow-level1 disabled:opacity-60 disabled:cursor-not-allowed">
-                        Create my vocabulary
+                        建立我的單字
                     </button>
+                    <p class="pt-1 text-center text-xs font-medium text-[#777777]">建立情境 <span aria-hidden="true">→</span> 預覽單字 <span aria-hidden="true">→</span> 配對練習</p>
                 </form>
-                <p class="border-t border-[#ECE7DE] pt-3 text-center text-xs font-medium text-[#777777]">Create a scenario <span aria-hidden="true">→</span> Learn the words <span aria-hidden="true">→</span> Match to practice</p>
-                <div class="rounded-[16px] border border-[#ECE7DE] bg-[#FFFDF8] p-3">
-                    <h3 class="text-sm font-semibold text-[#355C7D]">Match to practice</h3>
-                    <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
-                        <div class="rounded-xl border border-[#D9D3C8] bg-white px-3 py-2 text-center font-semibold text-[#355C7D]">予約</div>
-                        <div class="rounded-xl border border-[#D9D3C8] bg-white px-3 py-2 text-center text-[#777777]">Reservation</div>
-                        <div class="rounded-xl border border-[#D9D3C8] bg-white px-3 py-2 text-center font-semibold text-[#355C7D]">会計</div>
-                        <div class="rounded-xl border border-[#D9D3C8] bg-white px-3 py-2 text-center text-[#777777]">Check, please</div>
-                    </div>
-                </div>
             </div>
 
             <!-- Segment Control -->
@@ -522,7 +513,6 @@
         const AI_DECK_STORAGE_KEY = 'vocab_matcher_ai_deck_v1';
         const VOCABULARY_MEMORY_KEY = 'vocab_matcher_memory_v1';
         const FAVORITES_STORAGE_KEY = 'vocab_matcher_favorites_v1';
-        const SCENARIO_TEXTAREA_MAX_HEIGHT = 120;
         const languageLocales = {
             English: 'en-US', German: 'de-DE', French: 'fr-FR', Spanish: 'es-ES',
             Italian: 'it-IT', Japanese: 'ja-JP', Korean: 'ko-KR',
@@ -1114,20 +1104,11 @@
             if (store.activeDeckId && database[`ai:${store.activeDeckId}`]) currentModuleKey = `ai:${store.activeDeckId}`;
         }
 
-        function resizeScenarioTextarea() {
-            const topicInput = document.getElementById('ai-topic');
-            const countSelect = document.getElementById('ai-count');
-            topicInput.style.height = 'auto';
-            const singleLineHeight = countSelect.offsetHeight || topicInput.scrollHeight;
-            const nextHeight = Math.min(Math.max(topicInput.scrollHeight, singleLineHeight), SCENARIO_TEXTAREA_MAX_HEIGHT);
-            topicInput.style.height = `${nextHeight}px`;
-            topicInput.style.overflowY = topicInput.scrollHeight > SCENARIO_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
-        }
-
         function selectScenario(button) {
             const topicInput = document.getElementById('ai-topic');
             topicInput.value = button.dataset.scenario || '';
-            resizeScenarioTextarea();
+            document.getElementById('scenario-examples').classList.add('hidden');
+            document.getElementById('scenario-examples-toggle').setAttribute('aria-expanded', 'false');
             topicInput.focus();
         }
 
@@ -1143,7 +1124,7 @@
             const button = document.getElementById('ai-generate-button');
             const error = document.getElementById('ai-generator-error');
             button.disabled = isLoading;
-            button.textContent = isLoading ? 'Building your vocabulary…' : 'Create my vocabulary';
+            button.textContent = isLoading ? '正在建立單字…' : '建立我的單字';
             error.textContent = message;
             error.classList.toggle('hidden', !message);
         }
@@ -1668,8 +1649,6 @@
         migrateVocabularyMemoryContexts();
         restoreAiDeck();
         favoritesStore = loadFavoritesStore();
-        document.getElementById('ai-topic').addEventListener('input', resizeScenarioTextarea);
-        resizeScenarioTextarea();
         document.getElementById('ai-generator-form').addEventListener('submit', generateAiDeck);
         updateBadges();
         showView('home');
