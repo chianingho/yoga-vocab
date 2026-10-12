@@ -1,8 +1,8 @@
-# Vocab Matcher
+# Vocab
 
 > Turn real-life situations into vocabulary you can practice right away.
 
-Vocab Matcher is a context-based vocabulary learning web app.
+Vocab is a context-based vocabulary learning web app.
 
 Describe a real-life situation you are preparing for—such as ordering food in Japan, joining a tennis class in Thailand, or attending a jewelry auction in Germany—and generate a personalized vocabulary set with pronunciation, examples, and a matching game.
 
@@ -14,7 +14,7 @@ Describe a real-life situation you are preparing for—such as ordering food in 
 
 ## Why I Built This
 
-Vocab Matcher began when I was taking an anatomy course taught entirely in English. The course introduced many unfamiliar technical terms, and memorizing them through repetition alone was difficult.
+Vocab began when I was taking an anatomy course taught entirely in English. The course introduced many unfamiliar technical terms, and memorizing them through repetition alone was difficult.
 
 Inspired by Duolingo's matching game, I built a simple tool for practicing anatomy vocabulary by pairing terms with their meanings.
 
@@ -75,14 +75,14 @@ Match target-language words with their Traditional Chinese meanings. Incorrect a
 - Wrong-answer tracking
 - Smart Review
 - Topic management
-- Progressive Web App support
+- Mobile home-screen icon
 - Local learning history
 
 ---
 
 ## AI-Assisted Content Generation
 
-Vocab Matcher uses Google Gemini to generate structured learning content based on the scenario, target language, CEFR level, and requested vocabulary count.
+Vocab uses Google Gemini to generate structured learning content based on the scenario, target language, CEFR level, and requested vocabulary count.
 
 The system uses three layers of control to improve output consistency:
 
@@ -147,7 +147,7 @@ The Gemini API key is stored in a server-side Vercel environment variable and is
 | Deployment    | Vercel                           |
 | Analytics     | Vercel Analytics                 |
 | Performance   | Vercel Speed Insights            |
-| PWA           | Web App Manifest, Service Worker |
+| Home screen   | Browser icons; no manifest or service worker |
 
 ---
 
@@ -203,6 +203,7 @@ Current validation focuses on:
 - Data does not sync across devices
 - Clearing browser data may remove learning history
 - There is no account system or cloud backup
+- No Web App Manifest or service worker is currently included; offline PWA support is not implemented
 - AI-generated content may still require human review
 - Pronunciation quality depends on browser and device voices
 
