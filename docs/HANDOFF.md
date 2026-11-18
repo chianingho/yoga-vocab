@@ -1,6 +1,6 @@
 # Vocab 交接
 
-工作目錄 `/Users/chianiny/Projects/vocab`，基準 `main`。先驗證生成和配對，再修改錯誤處理。原有 [00–05 工作脈絡](../00_AI_START_HERE.md) 保留，其中早期模型和任務描述屬歷史，現況以程式與本目錄的驗證紀錄為準。
+工作目錄 `/Users/chianiny/Desktop/Projects/vocab`，基準 `main`。先驗證生成和配對，再修改錯誤處理。原有 [00–05 工作脈絡](../00_AI_START_HERE.md) 保留，其中早期模型和任務描述屬歷史，現況以程式與本目錄的驗證紀錄為準。
 
 ## 共用工作流程
 
